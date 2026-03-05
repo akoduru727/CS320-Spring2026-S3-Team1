@@ -12,7 +12,7 @@
         <h1 class="text-3xl font-semibold tracking-tighter">
           Profile
         </h1>
-        <p class="text-zinc-500">
+        <p class="text-zinc-600">
           Manage your profile and roommate preferences.
         </p>
       </div>
@@ -26,7 +26,7 @@
     </div>
 
     <Card class="flex gap-6">
-      <div class="w-24 h-24 rounded-full bg-zinc-200" />
+      <div class="w-24 h-24 rounded-full bg-zinc-200"></div>
     </Card>
 
     <Card class="space-y-6">

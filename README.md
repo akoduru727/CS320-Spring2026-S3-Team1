@@ -1,4 +1,4 @@
-# amhoust
+# amhrest
 A full-stack platform for university-verified off-campus housing, connecting students with landlords.
 
 ## Developing
