@@ -13,7 +13,7 @@ node_modules
 Thumbs.db
 
 # Env
-.env
+# .env excluded as it only has public data
 .env.*
 !.env.example
 !.env.test
