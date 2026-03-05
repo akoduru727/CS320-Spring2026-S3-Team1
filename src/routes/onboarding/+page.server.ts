@@ -17,6 +17,8 @@ export const actions: Actions = {
       });
     }
 
+    // TODO: prevent people from submitting the form twice (prevented at ui-level, but not backend-level atm)
+
     const table = `${accountType}s`;
     const { error } = await supabase
       .from(table)
