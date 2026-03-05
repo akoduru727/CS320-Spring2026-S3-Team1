@@ -1,5 +1,5 @@
 # amhrest
-A full-stack platform for university-verified off-campus housing, connecting students with landlords. Built for CS320: Software Engineering - Spring 2026
+A full-stack platform for university-verified off-campus housing, connecting students with landlords.
 
 ## Developing
 
