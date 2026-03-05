@@ -15,7 +15,7 @@
     <h3 class="text-sm">
       {name}  
     </h3>
-    <p class="text-sm text-zinc-500">
+    <p class="text-sm text-zinc-600">
       {description}
     </p>
   </div>
