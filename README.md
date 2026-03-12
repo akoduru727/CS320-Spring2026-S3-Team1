@@ -1,25 +1,35 @@
 # amhrest
 A full-stack platform for university-verified off-campus housing, connecting students with landlords.
 
+## Setup
+Follow the instructions [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) to install `node` and `npm`. Also ensure you have `git` installed; instructions are available [here](https://git-scm.com/install/).
+
+Once that's done, you can run:
+
+```sh
+git clone https://github.com/akoduru727/CS320-Spring2026-S3-Team1 amhrest
+```
+
+to clone our project into a folder named `amhrest`.
+
+Run `cd amhrest` to enter the folder, then `npm install` to install our dependencies.
+
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Once setup is complete, you can start a development server with:
 
 ```sh
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
+
+From there, visit `localhost:5173` in your web browser to see the app.
 
 ## Building
 
-To create a production version of your app:
+To create a production build, run:
 
 ```sh
 npm run build
 ```
 
 You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
