@@ -3,7 +3,6 @@ import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url, locals }) => {
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") || "/profile";
 
   if (!code) {
     return redirect(303, `/login?error=${encodeURIComponent("Missing OAuth code")}`);
@@ -15,5 +14,6 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     return redirect(303, `/login?error=${encodeURIComponent(error.message)}`);
   }
 
-  return redirect(303, next.startsWith("/") ? next : "/profile");
+  const next = url.searchParams.get("next");
+  return redirect(303, next?.startsWith("/") ? next : locals.accountType == "tenant" ? "/profile" : "/dashboard");
 };

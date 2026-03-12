@@ -2,10 +2,8 @@ import { fail, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-  const { session } = await locals.safeGetSession();
-
-  if (session) {
-    return redirect(303, "/profile");
+  if (locals.accountType) {
+    return redirect(303, locals.accountType === "tenant" ? "/profile" : "/dashboard");
   }
 
   return {
@@ -15,7 +13,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 export const actions: Actions = {
   google: async ({ locals, url }) => {
-    const next = url.searchParams.get("next") || "/profile";
+    const next = url.searchParams.get("next") || "/";
 
     const { data, error } = await locals.supabase.auth.signInWithOAuth({
       provider: "google",

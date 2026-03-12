@@ -4,7 +4,7 @@ import type { Actions } from "./$types";
 export const actions: Actions = {
   onboard: async ({ request, locals }) => {
     const supabase = locals.supabase;
-    const { user } = await locals.safeGetSession();
+    const user = locals.user;
     if (!user) return redirect(303, "/login");
 
     const formData = await request.formData();
@@ -16,6 +16,8 @@ export const actions: Actions = {
         message: "Please choose either Tenant or Landlord.",
       });
     }
+
+    // TODO: prevent people from submitting the form twice (prevented at ui-level, but not backend-level atm)
 
     const table = `${accountType}s`;
     const { error } = await supabase
@@ -34,6 +36,12 @@ export const actions: Actions = {
       });
     }
 
-    return redirect(303, "/profile");
+    // add account type to metadata
+    await supabase.auth.updateUser({
+      data: { account_type: accountType },
+    });
+    locals.accountType = accountType;
+
+    return redirect(303, "/");
   },
 };
