@@ -7,11 +7,7 @@ const isAuthExempt = (path: string) => {
 };
 
 const isOnboardingExempt = (path: string) => {
-  return isAuthExempt(path) || path.startsWith("/onboarding");
-};
-
-const parseAccountType = (value: unknown): "tenant" | "landlord" | null => {
-  return value === "tenant" || value === "landlord" ? value : null;
+  return path === "/" || path.startsWith("/auth") || path.startsWith("/onboarding");
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -61,12 +57,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const path = event.url.pathname;
 
-  // ignore non-route requests (e.g. assets)
+  // send to /login if user is not authenticated
   if (event.route.id && !session && !isAuthExempt(path)) {
     return redirect(303, `/login?next=${encodeURIComponent(path + event.url.search)}`);
   }
 
-  // onboard if account type has not been selected
+  // send to /onboarding if account type has not been selected
   if (event.route.id && user && !isOnboardingExempt(path) && !event.locals.accountType) {
     return redirect(303, "/onboarding");
   }
