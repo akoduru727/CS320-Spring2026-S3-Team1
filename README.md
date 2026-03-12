@@ -1,5 +1,5 @@
 # amhrest
-A full-stack platform for university-verified off-campus housing, connecting students with landlords.
+A full-stack platform for university-verified off-campus housing, connecting students with landlords. A link to our specification document can be found [here](https://docs.google.com/document/d/1NZeL1vhauEurR9mQQ8y43ZGX045EWZTWInTkXZE8nCE/edit?usp=sharing).
 
 ## Setup
 Follow the instructions [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) to install `node` and `npm`. Also ensure you have `git` installed; instructions are available [here](https://git-scm.com/install/).
