@@ -7,6 +7,9 @@ declare global {
 		interface Locals {
 			supabase: SupabaseClient;
 			safeGetSession(): Promise<{ session: Session | null; user?: Session["user"] | null }>;
+			session: Session | null;
+			user: Session["user"] | null;
+			accountType?: "tenant" | "landlord" | null;
 		}
 		interface PageData {
 			session: Session | null;
