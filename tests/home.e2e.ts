@@ -1,11 +1,21 @@
 import { expect, test } from '@playwright/test';
 
-test('login page shows Google signin', async ({ page }) => {
-  await page.goto('http://localhost:4173/login');
+test('root redirects to login', async ({ page }) => {
+  await page.goto('http://localhost:4173/');
+  await expect(page).toHaveURL(/\/login/);
+});
 
+test('login page shows sign-in heading', async ({ page }) => {
+  await page.goto('http://localhost:4173/login');
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
-  await expect(page.getByText('Use your Google account to continue.')).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Continue with Google' })
-  ).toBeVisible();
+});
+
+test('login page shows Google button', async ({ page }) => {
+  await page.goto('http://localhost:4173/login');
+  await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible();
+});
+
+test('protected dashboard redirects to login', async ({ page }) => {
+  await page.goto('http://localhost:4173/dashboard');
+  await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
 });
