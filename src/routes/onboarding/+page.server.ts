@@ -1,5 +1,9 @@
 import { fail, redirect } from "@sveltejs/kit";
-import type { Actions } from "./$types";
+import type { Actions, PageServerLoad } from "./$types";
+
+export const load: PageServerLoad = async ({ locals }) => {
+  if (locals.accountType) return redirect(307, "/");
+};
 
 export const actions: Actions = {
   onboard: async ({ request, locals }) => {
