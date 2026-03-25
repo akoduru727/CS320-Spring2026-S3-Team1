@@ -1,5 +1,7 @@
 <script lang="ts">
   import Card from "$lib/components/Card.svelte";
+  import Listing from "./Listing.svelte";
+  import Stat from "./Stat.svelte";
 </script>
 
 <div class="flex-1 flex overflow-hidden">
@@ -31,87 +33,15 @@
         </div>
 
         <div class="flex w-full flex-col items-stretch gap-3 pr-6 overflow-y-auto">
-          <Card class="flex items-center gap-6">
-            <div class="w-20 h-20 bg-zinc-300" />
-            
-            <div>
-              <p class="font-medium text-lg">
-                Kendrick Place
-              </p>
-              <p>
-                57 E Pleasant St, Amherst, MA 01002 
-              </p>
-            </div>
-          </Card>
-          <Card class="flex items-center gap-6">
-            <div class="w-20 h-20 bg-zinc-300" />
-            
-            <div>
-              <p class="font-medium text-lg">
-                Kendrick Place
-              </p>
-              <p>
-                57 E Pleasant St, Amherst, MA 01002 
-              </p>
-            </div>
-          </Card>
-          <Card class="flex items-center gap-6">
-            <div class="w-20 h-20 bg-zinc-300" />
-            
-            <div>
-              <p class="font-medium text-lg">
-                Kendrick Place
-              </p>
-              <p>
-                57 E Pleasant St, Amherst, MA 01002 
-              </p>
-            </div>
-          </Card>
-          <Card class="flex items-center gap-6">
-            <div class="w-20 h-20 bg-zinc-300" />
-            
-            <div>
-              <p class="font-medium text-lg">
-                Kendrick Place
-              </p>
-              <p>
-                57 E Pleasant St, Amherst, MA 01002 
-              </p>
-            </div>
-          </Card>
-          <Card class="flex items-center gap-6">
-            <div class="w-20 h-20 bg-zinc-300" />
-            
-            <div>
-              <p class="font-medium text-lg">
-                Kendrick Place
-              </p>
-              <p>
-                57 E Pleasant St, Amherst, MA 01002 
-              </p>
-            </div>
-          </Card>
+            {#each {length: 5} as _}
+                <Listing name="Kendrick Place" address="123 Kendrick Place" />
+            {/each}
         </div>
       </Card>
 
       <div class="flex-1 flex flex-col gap-3 items-stretch">
-        <Card class="space-y-3">
-          <p class="font-medium text-zinc-600">
-            Active Listings
-          </p>
-          <p class="text-lg font-medium">
-            5 Listings
-          </p>
-        </Card> 
-
-        <Card class="space-y-3">
-          <p class="font-medium text-zinc-600">
-            Pending Applications
-          </p>
-          <p class="text-lg font-medium">
-            10 Applications
-          </p>
-        </Card> 
+        <Stat name="Active Listings" stat={5} unit="Listing"/>
+        <Stat name="Pending Applications" stat={10} unit="Application" />
       </div>
     </div>
   </section>
