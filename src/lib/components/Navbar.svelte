@@ -17,7 +17,7 @@
     ];
   } else if (accountType === "landlord") {
     routes = [
-      { name: "Your Listings", href: "/" },
+      { name: "Your Listings", href: "/dashboard" },
       { name: "Application Portal", href: "/" },
       { name: "Chats", href: "/" },
       { name: "About", href: "/" },
