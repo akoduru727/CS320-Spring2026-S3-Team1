@@ -37,7 +37,7 @@
   <div class="flex items-center gap-9">
     {#each routes as { name, href } (name)}
       <a 
-        href={href}
+        {href}
         class="rounded-md px-3 py-1.5 hover:bg-zinc-200 transition-colors"
       >
         {name}
