@@ -23,8 +23,8 @@
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-<main class="relative h-screen flex flex-col bg-zinc-200">
-  <nav class="flex items-center justify-between bg-zinc-100 p-4 shadow">
+<main class="relative flex min-h-screen flex-col bg-zinc-200">
+  <nav class="flex shrink-0 items-center justify-between bg-zinc-100 p-4 shadow">
     <a href="/">
       <span class="select-none text-3xl font-bold tracking-tighter text-red-500">amhrest</span>
     </a>
