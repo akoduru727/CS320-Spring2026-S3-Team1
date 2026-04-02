@@ -1,6 +1,11 @@
 <script lang="ts">
     // In Svelte 5, props are accessed like this
-  const { session, accountType } = $props();
+    interface Props {
+      accountType: "tenant" | "landlord" | null,
+      isAuthenticated: boolean,
+    };
+
+  const { accountType, isAuthenticated }: Props = $props();
 
   // Step 1: define routes based on account type
   let routes = [];
@@ -30,7 +35,7 @@
     <span class="select-none text-3xl font-bold tracking-tighter text-red-500">amhrest</span>
   </a>
 
-  {#if session}
+  {#if isAuthenticated}
     <form method="POST" action="/auth/signout">
       <button
         type="submit"
