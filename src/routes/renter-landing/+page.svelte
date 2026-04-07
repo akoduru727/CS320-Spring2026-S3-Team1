@@ -8,19 +8,20 @@
         beds: number;
         address: string;
         img: string;
+        distanceFromCampusMi:number;
     };
 
     let searchTerm = $state("");
     const listingsList: Listing[] = [
-        {title:"House with Pool", baths:3, beds:2, address:"123 Kendrick Place", img:"src/lib/images/Screenshot 2026-03-09 151211.png"},
-        {title:"Apartment with Closet", baths:1, beds:1, address:"124 Kendrick Place", img:"src/lib/images/Screenshot 2026-03-09 151725.png"},
-        {title:"House with mountain view", baths:2, beds:4, address:"257 Amherst Road", img:"src/lib/images/Screenshot 2026-03-09 152754.png"},
-        {title:"Townhouse with Pool", baths:2, beds:2, address:"438 Amherst Plaza", img:"src/lib/images/Screenshot 2026-03-09 151129.png"}
+        {title:"House with Pool", baths:3, beds:2, address:"123 Kendrick Place", img:"src/lib/images/Screenshot 2026-03-09 151211.png", distanceFromCampusMi:4},
+        {title:"Apartment with Closet", baths:1, beds:1, address:"124 Kendrick Place", img:"src/lib/images/Screenshot 2026-03-09 151725.png", distanceFromCampusMi:4},
+        {title:"House with mountain view", baths:2, beds:4, address:"257 Amherst Road", img:"src/lib/images/Screenshot 2026-03-09 152754.png", distanceFromCampusMi:3},
+        {title:"Townhouse with Pool", baths:2, beds:2, address:"438 Amherst Plaza", img:"src/lib/images/Screenshot 2026-03-09 151129.png", distanceFromCampusMi:2}
     ];
     let filteredSearch = $derived(listingsList.filter(listing => {
         return listing.title.toLowerCase().includes(searchTerm) ||
             listing.address.toLowerCase().includes(searchTerm);
-    }))
+    }));
 
 </script>
 
@@ -54,9 +55,6 @@
                 <img
                   src={listing.img}
                   alt={listing.address}
-                  class="w-full h-56 rounded-md {listing.isPlaceholder
-                    ? 'bg-zinc-200 object-contain p-10'
-                    : 'object-cover'}"
                 />
 
                 <div class="space-y-1">
@@ -68,7 +66,7 @@
                     </span>
                   </p>
                   <p class="text-l text-zinc-1000">
-                    {listing.description}
+                    {listing.title}
                   </p>
                 </div>
               </Card>
