@@ -21,7 +21,8 @@
       { name: "About", href: "/" },
       { name: "Application Portal", href: "/" },
     ] : accountType === "landlord" ? [
-      { name: "Your Listings", href: "/dashboard" },
+      { name: "Dashboard", href: "/dashboard" },
+      { name: "Post Listing", href: "/post-listing" },
       { name: "Application Portal", href: "/" },
       { name: "Chats", href: "/" },
       { name: "About", href: "/" },

@@ -22,7 +22,7 @@
     <!--Search Bar-->
     <div class="mt-15 flex justify-center">
         <input type = "text" placeholder="Search for a listing..." 
-        class="w-657/1000 px-3 py-3 border border-zinc-400 rounded-lg text-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 ease-in-out">
+        class="w-2/3 px-3 py-3 border border-zinc-400 rounded-lg text-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 ease-in-out">
     </div>
 
     <!--Browse beneath search-->
