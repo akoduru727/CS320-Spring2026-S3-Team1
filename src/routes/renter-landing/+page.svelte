@@ -1,28 +1,20 @@
 <script lang="ts">
-    import Card from "$lib/components/Card.svelte";
-    import Listing from "./Listing.svelte";
+  import Card from "$lib/components/Card.svelte";
+  import Listing from "./Listing.svelte";
+  import type { PageProps } from "./$types";
 
-    interface Listing {
-        title: string;
-        baths: number;
-        beds: number;
-        address: string;
-        img: string;
-        distanceFromCampusMi:number;
-    };
+  let { data }: PageProps = $props();
 
-    let searchTerm = $state("");
-    const listingsList: Listing[] = [
-        {title:"House with Pool", baths:3, beds:2, address:"123 Kendrick Place", img:"src/lib/images/Screenshot 2026-03-09 151211.png", distanceFromCampusMi:4},
-        {title:"Apartment with Closet", baths:1, beds:1, address:"124 Kendrick Place", img:"src/lib/images/Screenshot 2026-03-09 151725.png", distanceFromCampusMi:4},
-        {title:"House with mountain view", baths:2, beds:4, address:"257 Amherst Road", img:"src/lib/images/Screenshot 2026-03-09 152754.png", distanceFromCampusMi:3},
-        {title:"Townhouse with Pool", baths:2, beds:2, address:"438 Amherst Plaza", img:"src/lib/images/Screenshot 2026-03-09 151129.png", distanceFromCampusMi:2}
-    ];
-    let filteredSearch = $derived(listingsList.filter(listing => {
-        return listing.title.toLowerCase().includes(searchTerm) ||
-            listing.address.toLowerCase().includes(searchTerm);
-    }));
-
+  let searchTerm = $state("");
+  let filteredSearch = $derived(
+    data.listings.filter((listing) => {
+      const query = searchTerm.toLowerCase();
+      return (
+        listing.title.toLowerCase().includes(query) ||
+        listing.address.toLowerCase().includes(query)
+      );
+    })
+  );
 </script>
 
 
@@ -50,7 +42,7 @@
     <div class="flex-1 flex gap-5 min-h-0 justify-between">
     <Card class="w-2/3 overflow-y-auto">
         <div class='grid grid-cols-2 gap-5 justify-between'>
-            {#each filteredSearch as listing}
+            {#each filteredSearch as listing (listing.address)}
               <Card class="p-3 space-y-3">
                 <img
                   src={listing.img}
@@ -83,7 +75,7 @@
         </div>
 
         <div class="flex w-full flex-col items-stretch gap-3 pr-6 overflow-y-auto">
-            {#each {length: 5} as _}
+            {#each [0, 1, 2, 3, 4] as n (n)}
                 <Listing name="Kendrick Place" address="123 Kendrick Place" />
             {/each}
         </div>
