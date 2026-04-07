@@ -26,8 +26,9 @@
       />
 
       <TextInput
-        name="Zip Code"      
+        name="Zip Code"
         placeholder="01002"
+        pattern="^\d{5}(?:-\d{4})?$"
       />
 
       <TextInput
@@ -38,21 +39,25 @@
       <TextInput
         name="Bedrooms"
         placeholder="2"
+        type="number"
       />
 
       <TextInput
         name="Bathrooms"
         placeholder="1"
+        type="number"
       />
 
       <TextInput
         name="Square Footage"
         placeholder="1200"
+        type="number"
       />
       
       <TextInput
         name="Monthly Rent ($)"
         placeholder="2000"
+        type="number"
       />
 
       <TextInput

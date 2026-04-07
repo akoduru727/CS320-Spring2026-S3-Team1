@@ -4,9 +4,11 @@
     name: string;
     placeholder?: string
     required?: boolean;
+    pattern?: string;
+    type?: string;
   };
   
-  const { class: extraClass = "", name, required = true, placeholder = "" }: Props = $props();
+  const { class: extraClass = "", name, required = true, placeholder = "", pattern, type = "text" }: Props = $props();
 </script>
 
 
@@ -17,6 +19,8 @@
   <input 
     {required} 
     {placeholder} 
+    {pattern}
+    {type}
     class="w-full bg-zinc-200 py-1 px-2 rounded"
   />
 </label>
