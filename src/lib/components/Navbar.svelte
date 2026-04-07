@@ -19,7 +19,7 @@
       { name: "Favorites", href: "/favorites" },
       { name: "History", href: "/" },
       { name: "About", href: "/" },
-      { name: "Application Portal", href: "/" },
+      { name: "Application Portal", href: "/renter-landing" },
     ] : accountType === "landlord" ? [
       { name: "Your Listings", href: "/dashboard" },
       { name: "Application Portal", href: "/" },
