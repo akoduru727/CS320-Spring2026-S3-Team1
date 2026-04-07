@@ -32,7 +32,7 @@
 
 <nav class="flex items-center justify-between bg-zinc-100 p-4 shadow">
   <a href="/">
-    <span class="select-none text-3xl font-bold tracking-tighter text-red-500">amhrest</span>
+    <span class="select-none text-3xl font-bold tracking-tighter text-red-800">amhrest</span>
   </a>
 
   <div class="flex items-center gap-9">

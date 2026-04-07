@@ -13,8 +13,8 @@
 
   <form>
     <Card class="grid grid-cols-6 gap-6">
-      <p class="col-span-6 text-lg font-medium tracking-tight mb-3">
-        Property Details
+      <p class="col-span-6 text-lg font-medium tracking-tight">
+        Details
       </p>
       
       <label class="col-span-3">
@@ -25,7 +25,7 @@
         />
       </label>
 
-      <label class="col-span-1">
+      <label>
         <p>Bedrooms*</p>
         <input 
           placeholder="2"
@@ -33,7 +33,7 @@
         />
       </label>
 
-      <label class="col-span-1">
+      <label>
         <p>Bathrooms*</p>
         <input 
           placeholder="1"
@@ -41,11 +41,65 @@
         />
       </label>
 
-      <label class="col-span-1">
-        <p>Square Feet*</p>
+      <label>
+        <p>Square Footage*</p>
         <input 
           placeholder="1200"
           class="w-full bg-zinc-200 py-1 px-2 rounded"
+        />
+      </label>
+      
+      <label class="col-span-2">
+        <p>Monthly Rent ($)*</p>
+        <input 
+          placeholder="2000"
+          class="w-full bg-zinc-200 py-1 px-2 rounded"
+        />
+      </label>
+
+      <label class="col-span-2">
+        <p>Available From*</p>
+        <input 
+          placeholder="mm/dd/yyyy"
+          class="w-full bg-zinc-200 py-1 px-2 rounded"
+        />
+      </label>
+
+      <label class="col-span-2">
+        <p>Available To*</p>
+        <input 
+          placeholder="mm/dd/yyyy"
+          class="w-full bg-zinc-200 py-1 px-2 rounded"
+        />
+      </label>
+
+      <label class="col-span-2 flex gap-3 items-center">
+        <p>
+          Utility Included*
+        </p>
+        <input 
+          type="checkbox"
+          class="accent-red-800"
+        />
+      </label>
+
+      <label class="col-span-2 flex gap-3 items-center">
+        <p>
+          Parking Available*
+        </p>
+        <input 
+          type="checkbox"
+          class="accent-red-800"
+        />
+      </label>
+
+      <label class="col-span-2 flex gap-3 items-center">
+        <p>
+          Is Furnished*
+        </p>
+        <input 
+          type="checkbox"
+          class="accent-red-800"
         />
       </label>
     </Card>
