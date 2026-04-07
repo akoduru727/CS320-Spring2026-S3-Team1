@@ -13,7 +13,7 @@
     Fill out the details below to create your property listing
   </h2>
 
-  <form class="space-y-6">
+  <form enctype="multipart/form-data" class="space-y-6">
     <Card class="grid grid-cols-6 gap-6">
       <p class="col-span-6 text-lg font-medium tracking-tight">
         Information
@@ -108,6 +108,9 @@
           rows={3}
         ></textarea>
       </label>
+
+      <p>Upload Images*</p>
+      <input type="file" id="imageUpload" name="imageUpload" accept="image/*" class="bg-zinc-200 rounded-2xl w-full">
     </Card>
   </form>
 </div>
