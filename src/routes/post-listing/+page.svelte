@@ -118,7 +118,8 @@
             type="file" 
             id="imageUpload" 
             name="imageUpload" 
-            accept="image/*" 
+            accept="image/*"
+            multiple
             class="bg-zinc-200 rounded-2xl w-full"
           >
         </label>
