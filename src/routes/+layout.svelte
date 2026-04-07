@@ -29,6 +29,5 @@
     accountType={accountType}
     isAuthenticated={session !== null}
   />
-
   {@render children()}
 </main>
