@@ -33,3 +33,29 @@ npm run build
 ```
 
 You can preview the production build with `npm run preview`.
+
+## E2E Tests (Auth Bypass)
+
+Playwright tests use a test-only auth bypass to avoid the Google OAuth flow.
+
+### Run E2E tests
+
+```sh
+npm run test:e2e
+```
+
+### Configure account type
+
+In `playwright.config.ts`, the preview server is started with:
+
+```ts
+E2E_AUTH_BYPASS=true
+E2E_ACCOUNT_TYPE=tenant
+```
+
+Set `E2E_ACCOUNT_TYPE` to `tenant` or `landlord` depending on which UI you want to test.
+
+### Notes
+
+- The bypass is only active when `E2E_AUTH_BYPASS=true`.
+- Tests run against the preview server (`npm run build && npm run preview`).
