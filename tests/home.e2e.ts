@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-// NOTE: Commented out older profile-only tests per request.
 // test('bypass lands on profile page', async ({ page }) => {
 //   await page.goto('/profile');
 //   await expect(page.getByRole('heading', { name: /profile/i })).toBeVisible();
