@@ -38,3 +38,20 @@ test('check for "Post Listing" button in landlord dashboard', async ({ page }) =
   await expect(page.getByRole('button', { name: 'Post Listing' })).toBeVisible();
 });
 
+
+test('renting dashboard page', async ({ page }) => {
+  await page.context().addCookies([
+    {
+      name: 'e2e-user',
+      value: JSON.stringify({
+        id: 'playwright-user',
+        email: 'playwright@example.com',
+        account_type: 'tenant',
+      }),
+      url: 'http://localhost:4173',
+    },    
+  ]);
+  await page.goto('http://localhost:4173/renter-landing');
+  await expect(page).toHaveURL(/\/renter-landing/);
+  
+})
