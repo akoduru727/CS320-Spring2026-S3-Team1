@@ -16,9 +16,13 @@ export const handle: Handle = async ({ event, resolve }) => {
     cookies: {
       getAll: () => event.cookies.getAll(),
       setAll: (cookiesToSet) => {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          event.cookies.set(name, value, { ...options, path: "/" });
-        });
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            event.cookies.set(name, value, { ...options, path: "/" });
+          });
+        } catch (err) {
+            console.error("Error setting cookies:", err);
+          }
       },
     },
   });
