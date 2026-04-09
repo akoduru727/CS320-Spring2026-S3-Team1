@@ -2,13 +2,24 @@
   interface Props {
     class?: string;
     name: string;
+    field?: string;
     placeholder?: string
     required?: boolean;
     pattern?: string;
     type?: string;
   };
   
-  const { class: extraClass = "", name, required = true, placeholder = "", pattern, type = "text" }: Props = $props();
+  const { 
+    class: extraClass = "", 
+    name, 
+    field, 
+    required = true, 
+    placeholder = "", 
+    pattern, 
+    type = "text" 
+  }: Props = $props();
+
+  const inputName = field ?? name;
 </script>
 
 
@@ -17,6 +28,7 @@
     {name}{required ? "*" : ""}
   </p>
   <input 
+    name={inputName}
     {required} 
     {placeholder} 
     {pattern}
