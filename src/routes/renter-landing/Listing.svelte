@@ -10,7 +10,7 @@
 </script>
 
 <Card class="flex items-center gap-6">
-	<div class="h-20 w-20 bg-zinc-300" />
+	<div class="h-20 w-20 bg-zinc-300"></div>
 
 	<div>
 		<p class="text-lg font-medium">
