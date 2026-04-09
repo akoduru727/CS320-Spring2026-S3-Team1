@@ -9,22 +9,27 @@
   let searchTerm = $state("");
   let bathValue = $state(0);
   let bedValue = $state(0);
+  let miValue = $state(0);
 
   let filteredSearch = $derived(
     data.listings.filter((listing) => {
       const query = searchTerm.toLowerCase();
       let bathBool = false;
       let bedBool = false;
+      let miBool = false;
       if(bathValue == 0 || listing.baths == bathValue) {
         bathBool = true;
       } else bathBool = false;
       if(bedValue == 0 || listing.beds == bedValue) {
         bedBool = true;
       } else bedBool = false;
+      if(miValue == 0 || listing.distanceFromCampusMi == miValue) {
+        miBool = true;
+      } else miBool = false;
       return (
         (listing.title.toLowerCase().includes(query) ||
         listing.address.toLowerCase().includes(query)) && 
-        (bathBool && bedBool)
+        (bathBool && bedBool && miBool)
       );
     })
   );
@@ -111,6 +116,7 @@
       <div class="flex w-full flex-col items-stretch gap-3 pr-6 overflow-y-auto">
         <Slider min=0 max=10 bind:value={bathValue} unit="Bath"/>
         <Slider min=0 max=10 bind:value={bedValue} unit="Bed"/>
+        <Slider min=0 max=10 bind:value={miValue} unit="Mile"/>
       </div>
     </Card>
   </div>
