@@ -16,6 +16,6 @@
 </script>
 
 <div class="flex justify-between">
-    <input type=range {min} {max} bind:value={value} class="w-2/3" />
+    <input type=range {min} {max} bind:value={value} class="w-2/3 accent-red-500" />
     <h2 class="justify-center">{unitStr}</h2>
 </div>
