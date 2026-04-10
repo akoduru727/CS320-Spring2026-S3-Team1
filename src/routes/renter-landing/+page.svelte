@@ -101,9 +101,15 @@
       </div>
 
       <div class="flex w-full flex-col items-stretch gap-3 pr-6 overflow-y-auto">
-        <Slider min=0 max=10 bind:value={bathValue} unit="Bath"/>
-        <Slider min=0 max=10 bind:value={bedValue} unit="Bed"/>
-        <Slider min=0 max=10 bind:value={miValue} unit="Mile"/>
+        <Card class="flex">
+          <Slider min=0 max=10 bind:value={bathValue} unit="Bath"/>
+        </Card>
+        <Card class="flex">
+          <Slider min=0 max=10 bind:value={bedValue} unit="Bed"/>
+        </Card>
+        <Card class="flex">
+          <Slider min=0 max=10 bind:value={miValue} unit="Mile"/>
+        </Card>
       </div>
     </Card>
   </div>

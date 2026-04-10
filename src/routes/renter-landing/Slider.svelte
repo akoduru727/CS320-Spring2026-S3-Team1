@@ -21,8 +21,8 @@
 </script>
 
 <div class="flex-1">
-    <input type=range {min} {max} bind:value={value} class="w-full accent-red-500 mt-5" />
-    <div class="flex mt-3">
+    <input type=range {min} {max} bind:value={value} class="w-full accent-red-500" />
+    <div class="flex">
         <h2 class="">{unitStr}</h2>
         {#each Array(value) as _}
         <h1>{unitEmoji[unit]}</h1>
