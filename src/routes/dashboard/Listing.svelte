@@ -25,17 +25,11 @@
   </div>
 
   <div class="flex items-center gap-6">
-    <button 
-      aria-label="edit listing"
-      class="hover:text-zinc-700 transition-colors"
-    >
+    <button aria-label="Edit listing" class="hover:text-zinc-700 transition-colors">
       <SquarePen />
     </button>
 
-    <button 
-      aria-label="delete listing"
-      class="hover:text-zinc-700 transition-colors"
-    >
+    <button aria-label="Delete listing" class="hover:text-zinc-700 transition-colors">
       <X size={30} />
     </button>
   </div>

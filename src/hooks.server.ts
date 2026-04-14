@@ -24,8 +24,8 @@ export const handle: Handle = async ({ event, resolve }) => {
   });
   event.locals.supabase = supabase;
 
-  if (env.E2E_AUTH_BYPASS === "true") {
-    const accountType = env.E2E_ACCOUNT_TYPE ?? "tenant";
+  if (env.auth === "true") {
+    const accountType = env.acc_type ?? "tenant";
     const session = {
       access_token: "e2e-access-token",
       token_type: "bearer",
