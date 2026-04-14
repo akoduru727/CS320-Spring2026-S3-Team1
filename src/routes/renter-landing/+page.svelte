@@ -68,27 +68,34 @@
   <div class="flex-1 flex gap-5 min-h-0 justify-between">
     <Card class="w-2/3 overflow-y-auto">
       <div class='grid grid-cols-2 gap-5 justify-between'>
-        {#each filteredSearch as listing (listing.address)}
-          <Card class="p-3 space-y-3">
-            <img
-              src={listing.img}
-              alt={listing.address}
-            />
-
-            <div class="space-y-1">
-              <h2 class="text-2xl font-semibold tracking-tight">{listing.address}</h2>
-              <p class="text-sm text-zinc-600">
-                Distance from campus
-                <span class="font-medium text-zinc-800">
-                  {listing.distanceFromCampusMi} mi
-                </span>
-              </p>
-              <p class="text-l text-zinc-1000">
-                {listing.title}
-              </p>
+        {#if filteredSearch.length == 0}
+            <div>
+                <h2 class="text-2xl font-semibold tracking-tight">No Listings</h2>
+                <p class="text-sm text-zinc-600">Try adjusting your search parameters</p>
             </div>
-          </Card>
-        {/each}
+        {:else}
+            {#each filteredSearch as listing (listing.address)}
+              <Card class="p-3 space-y-3">
+                <img
+                  src={listing.img}
+                  alt={listing.address}
+                />
+
+                <div class="space-y-1">
+                  <h2 class="text-2xl font-semibold tracking-tight">{listing.address}</h2>
+                  <p class="text-sm text-zinc-600">
+                    Distance from campus
+                    <span class="font-medium text-zinc-800">
+                      {listing.distanceFromCampusMi} mi
+                    </span>
+                  </p>
+                  <p class="text-l text-zinc-1000">
+                    {listing.title}
+                  </p>
+                </div>
+              </Card>
+            {/each}
+        {/if}
       </div>
     </Card>
 
