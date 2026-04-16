@@ -3,6 +3,9 @@
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
+	"bin": {
+		"e2e": "scripts/e2e.cjs"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -13,6 +16,7 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test:e2e": "playwright test",
+		"e2e": "node scripts/run-e2e.mjs",
 		"test": "npm run test:e2e"
 	},
 	"devDependencies": {

@@ -33,3 +33,28 @@ npm run build
 ```
 
 You can preview the production build with `npm run preview`.
+
+## E2E Tests
+
+Run a single test file (no auth):
+
+```sh
+npx e2e authGateTests
+```
+
+Run a single test file with auth + role:
+
+```sh
+npx e2e bypassTest tenant
+npx e2e bypassTest landlord
+```
+
+Run all `.e2e.ts` tests in `tests/` (auto-detects tenant/landlord by filename):
+
+```sh
+npx e2e all
+```
+
+- `npx e2e all` takes a while to run because it runs every test file sequentially.
+- If the filename includes `tenant` or `landlord`, the runner sets `auth=true` and `acc_type` automatically.
+- Otherwise, it runs with `auth=false`.

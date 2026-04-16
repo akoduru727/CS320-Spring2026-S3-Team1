@@ -1,4 +1,5 @@
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from "$env/static/public";
+import { env } from "$env/dynamic/private";
 import { createServerClient } from "@supabase/ssr";
 import { type Handle, redirect } from "@sveltejs/kit";
 
@@ -14,12 +15,6 @@ export const handle: Handle = async ({ event, resolve }) => {
   const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     cookies: {
       getAll: () => event.cookies.getAll(),
-      /**
-       * note: you have to add the `path` variable to the
-       * set and remove method due to sveltekit's cookie api
-       * requiring this to be set, setting the path to `/`
-       * will replicate previous/standard behaviour (https://kit.svelte.dev/docs/types#public-types-cookies)
-       */
       setAll: (cookiesToSet) => {
         cookiesToSet.forEach(({ name, value, options }) => {
           event.cookies.set(name, value, { ...options, path: "/" });
@@ -29,11 +24,38 @@ export const handle: Handle = async ({ event, resolve }) => {
   });
   event.locals.supabase = supabase;
 
-  /**
-   * unlike `supabase.auth.getSession`, which is unsafe on the server because it
-   * doesn't validate the jwt, this function validates the jwt by first calling
-   * `getUser` and aborts early if the jwt signature is invalid.
-   */
+  if (env.auth === "true") {
+    const accountType = env.acc_type ?? "tenant";
+    const session = {
+      access_token: "e2e-access-token",
+      token_type: "bearer",
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      refresh_token: "e2e-refresh-token",
+      user: {
+        id: "e2e-user",
+        aud: "authenticated",
+        role: "authenticated",
+        email: "e2e@example.com",
+        created_at: new Date().toISOString(),
+        app_metadata: {},
+        user_metadata: { account_type: accountType }
+      }
+    };
+
+    const user = session.user;
+    event.locals.safeGetSession = async () => ({ session, user });
+    event.locals.session = session;
+    event.locals.user = user;
+    event.locals.accountType = user.user_metadata.account_type;
+
+    return await resolve(event, {
+      filterSerializedResponseHeaders(name: string) {
+        return name === "content-range" || name === "x-supabase-api-version";
+      }
+    });
+  }
+
   const safeGetSession = async () => {
     const {
       data: { user },
