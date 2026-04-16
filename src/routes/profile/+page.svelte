@@ -79,7 +79,6 @@
       >
         <div class="space-x-1">
           <select bind:value={sleep} name="sleep" id="sleep" class="tracking-tighter">
-            <option value="" disabled selected>Choose your sleep preference</option>
             <option value = "early">Early</option>
             <option value = "late">Late</option>
             <option value = "flexible">Flexible</option>
