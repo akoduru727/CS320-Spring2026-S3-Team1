@@ -1,49 +1,57 @@
 import type { PageServerLoad } from "./$types";
 
 export type Listing = {
-  title: string;
-  baths: number;
-  beds: number;
-  address: string;
-  img: string;
-  distanceFromCampusMi: number;
+  title: string | null;
+  baths: number | null;
+  beds: number | null;
+  address: string | null;
+  img: string | null;
+  distanceFromCampusMi: number | null;
 };
 
-const listings: Listing[] = [
-  {
-    title: "House with Pool",
-    baths: 3,
-    beds: 2,
-    address: "123 Kendrick Place",
-    img: "src/lib/images/Screenshot 2026-03-09 151211.png",
-    distanceFromCampusMi: 4
-  },
-  {
-    title: "Apartment with Closet",
-    baths: 1,
-    beds: 1,
-    address: "124 Kendrick Place",
-    img: "src/lib/images/Screenshot 2026-03-09 151725.png",
-    distanceFromCampusMi: 4
-  },
-  {
-    title: "House with mountain view",
-    baths: 2,
-    beds: 4,
-    address: "257 Amherst Road",
-    img: "src/lib/images/Screenshot 2026-03-09 152754.png",
-    distanceFromCampusMi: 3
-  },
-  {
-    title: "Townhouse with Pool",
-    baths: 2,
-    beds: 2,
-    address: "438 Amherst Plaza",
-    img: "src/lib/images/Screenshot 2026-03-09 151129.png",
-    distanceFromCampusMi: 2
-  }
-];
+const COVER_TAG = "cover picture";
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+  const { data: listingRows, error: listingError } = await locals.supabase
+    .from("listings")
+    .select("id, title, baths, beds, address");
+  if (listingError) {
+    console.error(listingError);
+    return { listings: [] as Listing[] };
+  }
+
+  const listingsObj = listingRows ?? [];
+  const listingIds = listingsObj.map((listingElem) => listingElem.id).filter((id): id is string => id != null);
+
+  const coverUrlByListingId = new Map<string, string>();
+
+  if(listingIds.length > 0){
+    const {data: imageRows, error: imagesError} = await locals.supabase
+      .from("images")
+      .select("listing, url, tag")
+      .eq("tag", COVER_TAG)
+      .in("listing", listingIds);
+
+    if(imagesError){
+      console.error(imagesError);
+    } 
+    else {
+      for (const img of imageRows ?? []) {
+        const imgListingId = img.listing as string | null;
+        if (imgListingId != null && !coverUrlByListingId.has(imgListingId)) {
+          coverUrlByListingId.set(imgListingId, img.url as string);
+        }
+      }
+    }
+  }
+
+  const listings: Listing[] = listingsObj.map((row) => ({
+    title: row.title,
+    baths: row.baths,
+    beds: row.beds,
+    address: row.address,
+    img: coverUrlByListingId.get(row.id) ?? null,
+    distanceFromCampusMi: null //need to figure this out later how we calculate distance
+  }));
   return { listings };
 };
