@@ -74,7 +74,7 @@
                 <p class="text-sm text-zinc-600">Try adjusting your search parameters</p>
             </div>
         {:else}
-            {#each filteredSearch as listing (listing.address)}
+            {#each filteredSearch as listing (listing)}
               <Card class="p-3 space-y-3">
                 <img
                   src={listing.img}

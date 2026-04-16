@@ -1,6 +1,6 @@
 import { fail, redirect } from "@sveltejs/kit";
 import type { Actions } from "./$types";
-import getDistance from 'geolib/es/getDistance';
+import { getDistance } from 'geolib';
 
 const UMASS_COORDS = { latitude: "42.3851442", longitude:  "-72.5252865" };
 
@@ -76,8 +76,7 @@ export const actions: Actions = {
     const geoLocJson = (await geoLocObj.json())[0];
     const geoCoords = { latitude: geoLocJson.lat, longitude: geoLocJson.lon };
 
-    const distanceFromCampus = getDistance(UMASS_COORDS, geoCoords);
-    console.log(distanceFromCampus);
+    const distanceFromCampus = (getDistance(UMASS_COORDS, geoCoords) / 1.609);
 
     const availableFrom = getString(formData, "available_from") || null;
     const availableTo = getString(formData, "available_to") || null;
@@ -138,6 +137,7 @@ export const actions: Actions = {
       title,
       description,
       status: "Vacant",
+      distanceFromCampusMi: distanceFromCampus,
 
       application_type: applicationType,
       contact_email: contactEmail,
