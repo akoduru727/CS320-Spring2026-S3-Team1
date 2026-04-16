@@ -61,10 +61,44 @@ export const actions: Actions = {
     const availableFrom = getString(formData, "available_from") || null;
     const availableTo = getString(formData, "available_to") || null;
     const description = getString(formData, "description") || null;
+    const applicationType = getString(formData, "application_type");
+    if (!applicationType) {
+      return fail(400, { message: "Please select an application method." });
+    }
+    let contactEmail: string | null = null;
+    let contactPhone: string | null = null;
+    let pdfUrl: string | null = null;
 
     const utility = formData.get("utility") === "true";
     const parking = formData.get("parking") === "true";
     const furnished = formData.get("furnished") === "true";
+
+    if (applicationType === "contact") {
+      contactEmail = getString(formData, "contact_email");
+      if (!contactEmail) {
+        return fail(400, { message: "Email is required for contact method." });
+      }
+      contactPhone = getString(formData, "contact_phone") || null;
+    }
+
+    if (applicationType === "pdf") {
+      const file = formData.get("application_pdf");
+      if (!(file instanceof File) || file.size === 0) {
+        return fail(400, { message: "PDF file is required." });
+      }
+      const fileName = `${user.id}-${Date.now()}.pdf`;
+      const { error: uploadError } = await locals.supabase.storage.from("applications").upload(fileName, file, {
+        contentType: "application/pdf",
+      });
+
+      if (uploadError) {
+        console.log("UPLOAD ERROR:", uploadError);
+        return fail(500, { message: uploadError.message });
+      }
+
+      const { data: publicUrlData } = locals.supabase.storage.from("applications").getPublicUrl(fileName);
+      pdfUrl = publicUrlData.publicUrl;
+    }
 
     const payload = {
       landlord: user.id,
@@ -83,6 +117,11 @@ export const actions: Actions = {
       title,
       description,
       status: "Vacant",
+
+      application_type: applicationType,
+      contact_email: contactEmail,
+      contact_phone: contactPhone,
+      application_pdf_url: pdfUrl,
     };
 
     const { error } = await locals.supabase.from("listings").insert(payload);

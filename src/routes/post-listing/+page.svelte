@@ -8,6 +8,11 @@
 
   let images: FileList | undefined = $state();
   const imageCount = $derived(images?.length ?? 0);
+  let applicationType = $state("contact");
+  let pdfFile: FileList | undefined = $state();
+  const pdfName = $derived(
+    pdfFile && pdfFile.length > 0 ? pdfFile[0].name : null
+  );
 </script>
 
 <div class="flex-1 overflow-y-auto">
@@ -167,6 +172,75 @@
               : "No photos selected"}
           </p>
         </label>
+      </Card>
+
+      <Card class="grid grid-cols-6 gap-6">
+        <p class="col-span-6 text-lg font-medium tracking-tight">
+          Application Method
+        </p>
+
+        <label class="col-span-3 flex items-center gap-2">
+          <input
+            type="radio"
+            name="application_type"
+            value="contact"
+            bind:group={applicationType}
+          />
+          <span>Share contact information</span>
+        </label>
+
+        <label class="col-span-3 flex items-center gap-2">
+          <input
+            type="radio"
+            name="application_type"
+            value="pdf"
+            bind:group={applicationType}
+          />
+          <span>Upload PDF application</span>
+        </label>
+
+        {#if applicationType === "contact"}
+          <TextInput
+            name="Contact Email"
+            field="contact_email"
+            placeholder="landlord@example.com"
+            class="col-span-3"
+          />
+
+          <TextInput
+            name="Contact Phone"
+            field="contact_phone"
+            placeholder="(555) 123-4567"
+            class="col-span-3"
+            required={false}
+          />
+        {/if}
+
+        {#if applicationType === "pdf"}
+          <label class="col-span-6">
+            <p>Application PDF</p>
+          <label
+            for="pdf-upload"
+            class="mt-1 flex items-center justify-center gap-2 rounded bg-zinc-200 hover:bg-zinc-300 px-4 py-4 text-sm text-zinc-700 cursor-pointer transition-colors"
+          >
+            <span>
+              {pdfName ? "Change file" : "Choose PDF"}
+            </span>
+          </label>
+            <input
+              id="pdf-upload"
+              type="file"
+              name="application_pdf"
+             accept="application/pdf"
+             class="hidden"
+             bind:files={pdfFile}
+            />
+
+            <p class="mt-2 text-xs text-zinc-600">
+             {pdfName ?? "No file selected"}
+            </p>
+          </label>
+        {/if}
       </Card>
 
       {#if form?.message}
