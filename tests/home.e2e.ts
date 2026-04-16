@@ -53,5 +53,8 @@ test('renting dashboard page', async ({ page }) => {
   ]);
   await page.goto('http://localhost:4173/renter-landing');
   await expect(page).toHaveURL(/\/renter-landing/);
-  
-})
+  await expect(page.getByRole('link', { name: 'Profile'})).toBeVisible();
+  await page.getByRole('link', { name: 'Profile'}).click();
+  await expect(page).toHaveURL(/\/profile/);
+});
+
