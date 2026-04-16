@@ -14,20 +14,20 @@ test.describe('Landlord Dashboard', () => {
 
   //Navbar tests
   test('navbar shows landlord links', async ({ page }) => {
-    await expect(page.getByRole('link', { name: /your listings/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /post listing/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /application portal/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /chats/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /about/i })).toBeVisible();
   });
 
   test('navbar links navigate correctly', async ({ page }) => {
-    await page.getByRole('link', { name: /your listings/i }).click();
+    await page.getByRole('link', { name: /post listing/i }).first().click();
     await expect(page).toHaveURL(/dashboard/);
   });
 
   //Post listing button
   test('post listing button is visible', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /post listing/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Post Listing/i }).last()).toBeVisible();
   });
 
   //Listings
