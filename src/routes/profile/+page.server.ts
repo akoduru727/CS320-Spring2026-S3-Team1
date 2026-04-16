@@ -50,7 +50,7 @@ export const actions: Actions = {
 
     const smokingResult = formData.get("smoking") === "true";
 
-    const overnightResult = formData.get("overnight") === "true";
+    const overnightResult = formData.get("overnight") === "true"
 
     const payload = {
       tenant : user.id,
