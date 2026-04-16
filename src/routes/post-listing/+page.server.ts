@@ -1,5 +1,8 @@
 import { fail, redirect } from "@sveltejs/kit";
 import type { Actions } from "./$types";
+import getDistance from 'geolib/es/getDistance';
+
+const UMASS_COORDS = { latitude: "42.3851442", longitude:  "-72.5252865" };
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -42,6 +45,7 @@ export const actions: Actions = {
       return fail(400, { message: "Please fill in address, city, and title." });
     }
 
+
     const priceResult = parseIntField(formData, "price", "monthly rent");
     if ("error" in priceResult) return fail(400, { message: priceResult.error });
     if (priceResult.value === null) {
@@ -58,6 +62,23 @@ export const actions: Actions = {
     if ("error" in areaResult) return fail(400, { message: areaResult.error });
 
     const zipCode = getString(formData, "zip_code") || null;
+    if(!zipCode) return fail(400, { message: "Zip Code is required." })
+
+    const geoLocObj = await fetch(
+            "https://geocode.maps.co/search?q=" +
+            address +
+            "+" +
+            city +
+            "+MA+" +
+            zipCode +
+            "+US&api_key=69e0f89a88c8f361421390rtzd3c1fd");
+    if (!geoLocObj.ok) return fail(500, {message: "Geocoding Error"});
+    const geoLocJson = (await geoLocObj.json())[0];
+    const geoCoords = { latitude: geoLocJson.lat, longitude: geoLocJson.lon };
+
+    const distanceFromCampus = getDistance(UMASS_COORDS, geoCoords);
+    console.log(distanceFromCampus);
+
     const availableFrom = getString(formData, "available_from") || null;
     const availableTo = getString(formData, "available_to") || null;
     const description = getString(formData, "description") || null;
