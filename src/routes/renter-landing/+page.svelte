@@ -1,12 +1,7 @@
 <script lang="ts">
   import Card from "$lib/components/Card.svelte";
   import Slider from "./Slider.svelte";
-<<<<<<< HEAD
   import { Star } from "@lucide/svelte";
-=======
-  import type { PageProps } from "./$types";
-	import { LucideSettings } from "@lucide/svelte";
->>>>>>> d7c4f28 (renter landing link)
 
   const { data, form } = $props();
 
@@ -88,6 +83,7 @@
             </div>
         {:else}
             {#each filteredSearch as listing (listing.id)}
+             <a href={`/listings/${listing.id}`}>
               <Card class="p-3 space-y-3">
                 <img
                   src={listing.img ?? "/listing-placeholder.png"}
@@ -127,6 +123,7 @@
                   </p>
                 </div>
               </Card>
+             </a>
             {/each}
         {/if}
       </div>
