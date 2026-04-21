@@ -1,10 +1,15 @@
 <script lang="ts">
   import Card from "$lib/components/Card.svelte";
-  const { data } = $props();
+  const { data, form } = $props();
 </script>
 
 <div class="flex-1 overflow-y-auto">
   <section class="p-8 space-y-8">
+    {#if data.message || form?.message}
+      <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        {form?.message || data.message}
+      </p>
+    {/if}
     <div>
       <div>
         <h1 class="text-3xl font-semibold tracking-tighter">
