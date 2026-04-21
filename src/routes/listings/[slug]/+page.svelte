@@ -2,23 +2,36 @@
   import Perk from "./Perk.svelte";
   import { Check, X, Share, Star } from "@lucide/svelte";
 
-  const { data } = $props();    
+  const { data, form } = $props();    
   const listing = $derived(data.listing);
+  const isFavorite = $derived(data.isFavorite);
 
   const pluralize = (word: string, count: number): string => `${count} ${word}${count === 1 ? "" : "s"}`;
 </script>
 
 <div class="flex-1 overflow-y-auto">
+  {#if form?.message}
+    <div class="mx-auto mt-4 w-full max-w-5xl rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+      {form.message}
+    </div>
+  {/if}
   <div class="mx-auto w-full max-w-5xl flex-1 py-6 space-y-6 overflow-y-auto">
     <div class="flex items-center justify-between">
       <h1 class="text-3xl font-medium tracking-tight">
         {listing.title}
       </h1>
       <div class="flex gap-6">
-        <!-- TODO: make this do something -->
-        <button class="hover:text-zinc-700 transition-colors">
-          <Star />
-        </button>
+        <form method="POST" action="?/toggleFavorite">
+          <button
+            type="submit"
+            class="flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Star size={16} class={isFavorite ? "text-yellow-500 fill-yellow-500" : ""} />
+            <span>{isFavorite ? "Unfavorite" : "Favorite"}</span>
+          </button>
+        </form>
         <!-- TODO: make this do something -->
         <button class="hover:text-zinc-700 transition-colors">
           <Share />
