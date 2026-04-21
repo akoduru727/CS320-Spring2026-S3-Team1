@@ -1,10 +1,15 @@
 <script lang="ts">
   import Card from "$lib/components/Card.svelte";
-  const { data } = $props();
+  const { data, form } = $props();
 </script>
 
 <div class="flex-1 overflow-y-auto">
   <section class="p-8 space-y-8">
+    {#if data.message || form?.message}
+      <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        {form?.message || data.message}
+      </p>
+    {/if}
     <div>
       <div>
         <h1 class="text-3xl font-semibold tracking-tighter">
@@ -22,7 +27,7 @@
       </p>
     {:else}
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-9">
-        {#each data.favorites as listing}
+        {#each data.favorites as listing (listing.id)}
           <Card class="p-0 shadow-md hover:scale-103 transition-transform ease-in-out">
             <img
               src={listing.imageSrc}
@@ -43,6 +48,14 @@
               <p class="text-l text-zinc-1000">
                 {listing.description}
               </p>
+              <div class="flex justify-end pt-2">
+                <form method="POST" action="?/remove">
+                  <input type="hidden" name="id" value={listing.id} />
+                  <button type="submit" class="text-sm font-medium text-red-800 hover:text-red-700">
+                    Remove
+                  </button>
+                </form>
+              </div>
             </div>
 
           </Card>
