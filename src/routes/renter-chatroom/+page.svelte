@@ -12,7 +12,7 @@
   let selectedTab: Tab = "friends";
   let selectedContact: Contact | null = null;
   let search = "";
-  $: shownContacts = selectedTab === "friends" ? friendContacts : selectedTab === "landlords" ? landlordContacts : requestContacts;
+  $: shownContacts = (selectedTab === "friends" ? friendContacts : selectedTab === "landlords" ? landlordContacts : requestContacts) as Contact[];
   $: filteredContacts = shownContacts.filter(contact => contact.name.toLowerCase().includes(search.toLowerCase()));
 
   function openChat(contact: Contact){
@@ -60,7 +60,14 @@
                         <!-- Contact List Area -->
                         <div class = "flex-1 bg-zinc-300 rounded-lg p-4 space-y-4 overflow-y-auto">
                             {#each filteredContacts as contact (contact.name)}
-                                <ContactRow name={contact.name} image = {contact.image} onMessageClick={() => openChat(contact)}/>
+                                <ContactRow 
+                                    name={contact.name} 
+                                    image={contact.image} 
+                                    type={selectedTab === "friends" ? "friend" : selectedTab === "landlords" ? "landlord" : "request"}
+                                    onMessageClick={() => openChat(contact)}
+                                    onDelete={() => console.log("delete", contact.name)}
+                                    onReport={() => console.log("report", contact.name)}
+        />
                             {/each}
                         </div>
                     {/if}
