@@ -1,6 +1,9 @@
-import type { PageServerLoad } from "./$types";
+import { redirect } from "@sveltejs/kit";
+import { fail } from "@sveltejs/kit";
+import type { Actions, PageServerLoad } from "./$types";
 
 export type Listing = {
+  id: string;
   title: string | null;
   baths: number | null;
   beds: number | null;
@@ -12,12 +15,24 @@ export type Listing = {
 const COVER_TAG = "cover picture";
 
 export const load: PageServerLoad = async ({ locals }) => {
+  if (locals.accountType !== "tenant") return redirect(303, "/");
+  if (!locals.user) return redirect(303, "/login");
+
+  const { data: tenantRow, error: tenantError } = await locals.supabase
+    .from("tenants")
+    .select("favorite_houses")
+    .eq("id", locals.user.id)
+    .single();
+  const message = tenantError ? tenantError.message : undefined;
+  if (tenantError) console.error(tenantError);
+  const favoriteIds = ((tenantRow?.favorite_houses ?? []) as string[]).filter(Boolean);
+
   const { data: listingRows, error: listingError } = await locals.supabase
     .from("listings")
     .select("id, title, baths, beds, address, distanceFromCampusMi");
   if (listingError) {
     console.error(listingError);
-    return { listings: [] as Listing[] };
+    return { listings: [] as Listing[], favoriteIds, message };
   }
 
   const listingsObj = listingRows ?? [];
@@ -46,6 +61,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   const listings: Listing[] = listingsObj.map((row) => ({
+    id: row.id,
     title: row.title,
     baths: row.baths,
     beds: row.beds,
@@ -53,5 +69,46 @@ export const load: PageServerLoad = async ({ locals }) => {
     img: coverUrlByListingId.get(row.id) ?? null,
     distanceFromCampusMi: row.distanceFromCampusMi ?? null //need to figure this out later how we calculate distance
   }));
-  return { listings };
+  return { listings, favoriteIds, message };
+};
+
+export const actions: Actions = {
+  toggleFavorite: async ({ request, locals, url }) => {
+    if (locals.accountType !== "tenant") return redirect(303, "/");
+    if (!locals.user) return redirect(303, "/login");
+
+    const formData = await request.formData();
+    const listingId = formData.get("id");
+    if (typeof listingId !== "string" || !listingId) return;
+
+    const { data: tenantRow, error: tenantError } = await locals.supabase
+      .from("tenants")
+      .select("favorite_houses")
+      .eq("id", locals.user.id)
+      .single();
+    if (tenantError) {
+      console.error(tenantError);
+      return fail(500, { message: tenantError.message });
+    }
+
+    const favoriteIds = (tenantRow?.favorite_houses ?? []) as string[];
+    const isCurrentlyFavorite = favoriteIds.includes(listingId);
+    const nextFavorites = isCurrentlyFavorite
+      ? favoriteIds.filter((id) => id !== listingId)
+      : [...favoriteIds, listingId];
+
+    const { data: updatedTenant, error: updateError } = await locals.supabase
+      .from("tenants")
+      .update({ favorite_houses: nextFavorites })
+      .eq("id", locals.user.id)
+      .select("favorite_houses")
+      .single();
+    if (updateError) {
+      console.error(updateError);
+      return fail(500, { message: updateError.message });
+    }
+    if (!updatedTenant) return fail(500, { message: "Favorite update failed (no row returned)." });
+
+    return redirect(303, url.pathname);
+  }
 };
