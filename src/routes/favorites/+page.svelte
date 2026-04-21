@@ -27,7 +27,7 @@
       </p>
     {:else}
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-9">
-        {#each data.favorites as listing}
+        {#each data.favorites as listing (listing.id)}
           <Card class="p-0 shadow-md hover:scale-103 transition-transform ease-in-out">
             <img
               src={listing.imageSrc}
@@ -48,6 +48,14 @@
               <p class="text-l text-zinc-1000">
                 {listing.description}
               </p>
+              <div class="flex justify-end pt-2">
+                <form method="POST" action="?/remove">
+                  <input type="hidden" name="id" value={listing.id} />
+                  <button type="submit" class="text-sm font-medium text-red-800 hover:text-red-700">
+                    Remove
+                  </button>
+                </form>
+              </div>
             </div>
 
           </Card>

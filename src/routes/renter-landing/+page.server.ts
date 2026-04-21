@@ -3,6 +3,7 @@ import { fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
 export type Listing = {
+  id: string;
   title: string | null;
   baths: number | null;
   beds: number | null;
@@ -60,12 +61,13 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   const listings: Listing[] = listingsObj.map((row) => ({
+    id: row.id,
     title: row.title,
     baths: row.baths,
     beds: row.beds,
     address: row.address,
     img: coverUrlByListingId.get(row.id) ?? null,
-    distanceFromCampusMi: null //need to figure this out later how we calculate distance
+    distanceFromCampusMi: 0 // TODO: calculate distance
   }));
   return { listings, favoriteIds, message };
 };
