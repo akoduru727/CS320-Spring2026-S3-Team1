@@ -14,7 +14,7 @@ const COVER_TAG = "cover picture";
 export const load: PageServerLoad = async ({ locals }) => {
   const { data: listingRows, error: listingError } = await locals.supabase
     .from("listings")
-    .select("id, title, baths, beds, address");
+    .select("id, title, baths, beds, address, distanceFromCampusMi");
   if (listingError) {
     console.error(listingError);
     return { listings: [] as Listing[] };
@@ -51,7 +51,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     beds: row.beds,
     address: row.address,
     img: coverUrlByListingId.get(row.id) ?? null,
-    distanceFromCampusMi: null //need to figure this out later how we calculate distance
+    distanceFromCampusMi: row.distanceFromCampusMi ?? null //need to figure this out later how we calculate distance
   }));
   return { listings };
 };
