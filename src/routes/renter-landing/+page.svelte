@@ -1,7 +1,12 @@
 <script lang="ts">
   import Card from "$lib/components/Card.svelte";
   import Slider from "./Slider.svelte";
+<<<<<<< HEAD
   import { Star } from "@lucide/svelte";
+=======
+  import type { PageProps } from "./$types";
+	import { LucideSettings } from "@lucide/svelte";
+>>>>>>> d7c4f28 (renter landing link)
 
   const { data, form } = $props();
 
