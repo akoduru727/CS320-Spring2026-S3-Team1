@@ -82,6 +82,14 @@
                                 Remove Landlord
                             </button>
                         {/if}
+
+                        <button
+                            class="w-full text-left px-4 py-2 text-sm text-black-500 hover:bg-zinc-100 transition-colors"
+                            onclick={() => { onReport?.(); menuOpen = false; }}
+                        >
+                            Block
+                        </button>
+
                         <button
                             class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-zinc-100 transition-colors"
                             onclick={() => { onReport?.(); menuOpen = false; }}
