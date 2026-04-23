@@ -5,11 +5,11 @@
   import ContactRow from "./ContactRow.svelte";
   // @ts-ignore
   import ChatPage from "./ChatPage.svelte";
-  import {recentContacts, friendContacts, landlordContacts, requestContacts, type Tab} from "./tempdata";
+  import {recentContacts, requestContacts, type Tab} from "./tempdata";
   import {Users, House, Mail} from "@lucide/svelte";
   type Contact = {name: string, image?: string};
   
-  let selectedTab: Tab = "friends";
+  let selectedTab: Tab = "contacts";
   let selectedContact: Contact | null = null;
   let search = "";
   $: shownContacts = selectedTab === "friends" ? friendContacts : selectedTab === "landlords" ? landlordContacts : requestContacts;
