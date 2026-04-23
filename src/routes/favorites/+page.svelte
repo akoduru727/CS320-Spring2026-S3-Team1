@@ -28,37 +28,38 @@
     {:else}
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-9">
         {#each data.favorites as listing (listing.id)}
-          <Card class="p-0 shadow-md">
-            <img
-              src={listing.imageSrc}
-              alt={listing.address}
-              class="w-full h-56 {listing.isPlaceholder
-                ? "bg-zinc-200 object-contain p-10"
-                : "object-cover"}"
-            />
+          <a href={"/listings/" + listing.id}>
+            <Card class="p-0 shadow-md">
+              <img
+                src={listing.imageSrc}
+                alt={listing.address}
+                class="w-full h-56 {listing.isPlaceholder
+                  ? "bg-zinc-200 object-contain p-10"
+                  : "object-cover"}"
+              />
 
-            <div class="space-y-1 p-6">
-              <h2 class="text-2xl font-semibold tracking-tight">{listing.address}</h2>
-              <p class="text-lg">
-                {listing.title}
-              </p>
-              <p class="text-sm text-zinc-600">
-                <span class="font-medium text-zinc-800">
-                  {listing.distanceFromCampusMi} mi
-                </span>
-                from campus
-              </p>
-              <div class="flex justify-end pt-2">
-                <form method="POST" action="?/remove">
-                  <input type="hidden" name="id" value={listing.id} />
-                  <button type="submit" class="text-sm font-medium text-red-800 hover:text-red-700">
-                    Remove
-                  </button>
-                </form>
+              <div class="space-y-1 p-6">
+                <h2 class="text-2xl font-semibold tracking-tight">{listing.address}</h2>
+                <p class="text-lg">
+                  {listing.title}
+                </p>
+                <p class="text-sm text-zinc-600">
+                  <span class="font-medium text-zinc-800">
+                    {listing.distanceFromCampusMi} mi
+                  </span>
+                  from campus
+                </p>
+                <div class="flex justify-end pt-2">
+                  <form method="POST" action="?/remove">
+                    <input type="hidden" name="id" value={listing.id} />
+                    <button type="submit" class="text-sm font-medium text-red-800 hover:text-red-700">
+                      Remove
+                    </button>
+                  </form>
+                </div>
               </div>
-            </div>
-
-          </Card>
+            </Card>
+          </a>
         {/each}
       </div>
     {/if}
