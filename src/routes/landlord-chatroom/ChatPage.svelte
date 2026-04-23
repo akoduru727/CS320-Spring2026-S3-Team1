@@ -1,7 +1,10 @@
 <script lang="ts">
     import ChatMessage from "./ChatMessage.svelte";
     import {tick, onMount} from "svelte";
+    import {supabase} from '$lib/supabase';
+
     interface Contact{
+        id: string;
         name: string;
         image?: string;
     }
@@ -14,28 +17,68 @@
     }
     interface Props {
         contact: Contact;
+        conversationId: string;
         onBack: () => void;
     };
-    const { contact, onBack}: Props = $props();
+    const { contact, conversationId, onBack}: Props = $props();
+    
     let newMessage = $state("");
     let chatArea: HTMLDivElement;
-    let messages = $state<Message[]>([
-        {senderName: contact.name, profilePic: contact.image, text: "Hi there!", user: "other", date: new Date()},
-        {senderName: "You", profilePic: contact.image, text: "Hello! How are you?", user: "self", date: new Date()},
-        {senderName: contact.name, profilePic: contact.image, text: "I'm good, thanks! What about you?", user: "other", date: new Date()}
-    ]);
+    let messages = $state<Message[]>([]);
+    let currentUserId = $state<string | null>(null);
     async function scrollToBottom(){
         await tick();
         chatArea.scrollTop = chatArea.scrollHeight;
     }
-    async function sendMessage(){
-        const trimmed = newMessage.trim();
-        if (!trimmed) return;
-        messages = [...messages, {senderName: "You", text: trimmed, user: "self", date: new Date()}];
-        newMessage = "";
+    async function loadMessages(){
+        const { data: { user } } = await supabase.auth.getUser();
+        currentUserId = user?.id ?? null;
+        const { data, error } = await supabase
+            .from("message").select("*").eq("conversation_id", conversationId).order("created_at", { ascending: true });
+        if (error) {
+            console.error("Error fetching messages:", error);
+        }
+        messages = (data ?? []).map((msg) => ({
+            senderName: msg.sender === currentUserId ? "You" : contact.name,
+            text: msg.messages_content,
+            user: msg.sender === currentUserId ? "self" : "other",
+            date: new Date(msg.created_at)
+        }));
         await scrollToBottom();
     }
-    onMount(async () => await scrollToBottom());
+    async function sendMessage(){
+        const trimmed = newMessage.trim();
+        if (!trimmed || !currentUserId) return;
+        const { error } = await supabase
+            .from("message").insert(
+                { sender: currentUserId, messages_content: trimmed, conversation_id: conversationId, is_read: false });
+        if (error) console.error("Error sending message:", error);
+        newMessage = "";
+    }
+    onMount(() => {
+        loadMessages();
+
+        const channel = supabase
+            .channel(`conversation:${conversationId}`)
+            .on("postgres_changes", {
+                event: "INSERT",
+                schema: "public",
+                table: "message",
+                filter: `conversation_id=eq.${conversationId}`
+                
+            }, async (payload) => {
+                const row = payload.new;
+                messages = [...messages, {
+                    senderName: row.sender === currentUserId ? "You" : contact.name,
+                    text: row.messages_content,
+                    user: row.sender === currentUserId ? "self" : "other",
+                    date: new Date(row.created_at)
+                }];
+                await scrollToBottom();
+            })
+            .subscribe();
+        return () => supabase.removeChannel(channel);
+    });
 </script>
 
 <div class = "w-full flex flex-col flex-1 min-h-0">

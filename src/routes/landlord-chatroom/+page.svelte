@@ -1,23 +1,31 @@
 <script lang="ts">
   import Card from "$lib/components/Card.svelte";
-  import SidebarButton from "./SidebarButton.svelte";
   import RecentContact from "./RecentContact.svelte";
   import ContactRow from "./ContactRow.svelte";
-  // @ts-ignore
   import ChatPage from "./ChatPage.svelte";
-  import {recentContacts, requestContacts, type Tab} from "./tempdata";
-  import {Users} from "@lucide/svelte";
-  type Contact = {name: string, image?: string};
-  
+  //import {recentContacts, requestContacts, type Tab} from "./tempdata";
+  //import {Users} from "@lucide/svelte";
+  type Contact = {id: string, name: string, image?: string};
+
+  export let data; //from +page.server.ts
+
+  let contacts: Contact[] = data.contacts;
+  let conversations = data.conversations;
   let selectedContact: Contact | null = null;
+  let selectedConversationId: string | null = null;
   let search = "";
-  $: filteredContacts = recentContacts.filter(contact => contact.name.toLowerCase().includes(search.toLowerCase()));
+  $: filteredContacts = contacts.filter(contact => contact.name.toLowerCase().includes(search.toLowerCase()));
 
   function openChat(contact: Contact){
     selectedContact = contact;
+    //Find existing conversation with this contact
+    const conversation = conversations.find(convo => 
+        (convo.chat_participants as string[]).includes(contact.id));
+    selectedConversationId = conversation?.id ?? null; //
   }
   function closeChat(){
     selectedContact = null;
+    selectedConversationId = null;
   }
 </script>
 
@@ -33,7 +41,7 @@
                         <p class="text-sm font-semibold text-white uppercase tracking-wider mb-2 px-1">Recent Contacts</p>
                         <div class="border-b border-white mb-3"></div>
 
-                        {#each recentContacts as contact (contact.name)}
+                        {#each contacts as contact (contact.name)}
                             <RecentContact name={contact.name} image = {contact.image} onClick={() => openChat(contact)}/>
                         {/each}
                     </div>
@@ -41,10 +49,10 @@
 
                 <!--Right Side-->
                 <div class = "flex-1 bg-zinc-100 p-4 flex flex-col">
-                    {#if selectedContact}
+                    {#if selectedContact && selectedConversationId}
                         {#key selectedContact.name}
                             <!-- Chat View -->
-                            <ChatPage contact = {selectedContact} onBack={closeChat}/>
+                            <ChatPage contact = {selectedContact} conversationId = {selectedConversationId} onBack={closeChat}/>
                         {/key}
                     {:else}
                         <!-- Search Box -->

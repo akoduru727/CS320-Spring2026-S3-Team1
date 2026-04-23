@@ -24,7 +24,7 @@
       { name: "Dashboard", href: "/dashboard" },
       { name: "Post Listing", href: "/post-listing" },
       { name: "Application Portal", href: "/" },
-      { name: "Chats", href: "/" },
+      { name: "Chats", href: "/landlord-chatroom" },
       { name: "About", href: "/" },
     ] : []
   );
