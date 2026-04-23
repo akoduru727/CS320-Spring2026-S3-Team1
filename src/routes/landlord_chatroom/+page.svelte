@@ -6,14 +6,12 @@
   // @ts-ignore
   import ChatPage from "./ChatPage.svelte";
   import {recentContacts, requestContacts, type Tab} from "./tempdata";
-  import {Users, House, Mail} from "@lucide/svelte";
+  import {Users} from "@lucide/svelte";
   type Contact = {name: string, image?: string};
   
-  let selectedTab: Tab = "contacts";
   let selectedContact: Contact | null = null;
   let search = "";
-  $: shownContacts = selectedTab === "friends" ? friendContacts : selectedTab === "landlords" ? landlordContacts : requestContacts;
-  $: filteredContacts = shownContacts.filter(contact => contact.name.toLowerCase().includes(search.toLowerCase()));
+  $: filteredContacts = recentContacts.filter(contact => contact.name.toLowerCase().includes(search.toLowerCase()));
 
   function openChat(contact: Contact){
     selectedContact = contact;
@@ -29,15 +27,12 @@
             <div class = "flex h-full">
                 <!--Left Sidebar-->
                 <div class = "w-72 bg-zinc-400 p-4 flex flex-col">
-                    <div class = "space-y-3">
-                    <SidebarButton text="Friends" icon= {Users} onClick={() => selectedTab = "friends"}/>
-                    <SidebarButton text="Message Requests" icon= {Mail} onClick={() => selectedTab = "requests"}/>
-                    </div>
-
-                    <div class = "my-5 border-t border-white"></div>
                     
                     <!-- Recent Contacts-->
-                    <div class = "flex-1 space-y-3 overflow-y-auto">
+                    <div class = "flex-1 space-y-3">
+                        <p class="text-sm font-semibold text-white uppercase tracking-wider mb-2 px-1">Recent Contacts</p>
+                        <div class="border-b border-white mb-3"></div>
+
                         {#each recentContacts as contact (contact.name)}
                             <RecentContact name={contact.name} image = {contact.image} onClick={() => openChat(contact)}/>
                         {/each}
