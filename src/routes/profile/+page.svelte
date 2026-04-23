@@ -33,10 +33,6 @@
       </button>
     </div>
 
-    <Card class="flex gap-6">
-      <div class="w-24 h-24 rounded-full bg-zinc-200"></div>
-    </Card>
-
     <form method="POST" action="?/create">
     <Card class="space-y-6">
       <h2 class="text-xl font-semibold tracking-tighter">
