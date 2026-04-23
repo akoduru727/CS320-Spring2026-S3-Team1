@@ -28,7 +28,7 @@
     {:else}
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-9">
         {#each data.favorites as listing (listing.id)}
-          <Card class="p-0 shadow-md hover:scale-103 transition-transform ease-in-out">
+          <Card class="p-0 shadow-md">
             <img
               src={listing.imageSrc}
               alt={listing.address}
@@ -37,16 +37,16 @@
                 : "object-cover"}"
             />
 
-            <div class="space-y-2 p-6">
+            <div class="space-y-1 p-6">
               <h2 class="text-2xl font-semibold tracking-tight">{listing.address}</h2>
+              <p class="text-lg">
+                {listing.title}
+              </p>
               <p class="text-sm text-zinc-600">
                 <span class="font-medium text-zinc-800">
                   {listing.distanceFromCampusMi} mi
                 </span>
                 from campus
-              </p>
-              <p class="text-l text-zinc-1000">
-                {listing.description}
               </p>
               <div class="flex justify-end pt-2">
                 <form method="POST" action="?/remove">

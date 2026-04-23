@@ -4,13 +4,6 @@ import type { Actions, PageServerLoad } from "./$types";
 /** Served from `static/listing-placeholder.png` */
 const PLACEHOLDER_IMAGE = "/listing-placeholder.png";
 
-type ListingRow = {
-  id: string;
-  address: string | null;
-  description: string | null;
-  image_url: string | null;
-};
-
 function resolveListingImage(url: string | null | undefined) {
   const trimmed = url?.trim();
   return trimmed ? trimmed : PLACEHOLDER_IMAGE;
@@ -39,7 +32,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const { data: listingRows, error: listingError } = await locals.supabase
     .from("listings")
-    .select("id, address, description, image_url")
+    .select()
     .in("id", favoriteIds);
   if (listingError) {
     console.error(listingError);
@@ -47,18 +40,18 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   const order = new Map(favoriteIds.map((id, i) => [id, i]));
-  const listings = ((listingRows ?? []) as ListingRow[]).sort(
+  const listings = (listingRows ?? []).sort(
     (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)
   );
 
   return {
     favorites: listings.map((listing) => ({
       id: listing.id,
-      address: listing.address ?? "Unknown address",
-      distanceFromCampusMi: 0,
-      description: listing.description ?? "",
+      title: listing.title,
+      address: listing.address,
+      distanceFromCampusMi: listing.distance_from_campus_mi ?? 0,
       imageSrc: resolveListingImage(listing.image_url),
-      isPlaceholder: isPlaceholderImage(listing.image_url)
+      isPlaceholder: isPlaceholderImage(listing.image_url),
     }))
   };
 };
