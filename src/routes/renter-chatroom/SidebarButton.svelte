@@ -6,9 +6,10 @@
         icon?: Component;
         onClick?: () => void;
         active?: boolean;
+        count?: number;
     };
 
-    const { text, icon, onClick, active = false }: Props = $props();
+    const { text, icon, onClick, active = false, count = 0 }: Props = $props();
     const Icon = $derived(icon);
 </script>
 
@@ -24,4 +25,10 @@
     <p class = "font-medium text-black">
         {text}
     </p>
+    <!-- Notification Count -->
+    {#if count > 0}
+        <span class="ml-auto min-w-[22px] h-6 px-2 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            {count}
+        </span>
+    {/if}
 </button>

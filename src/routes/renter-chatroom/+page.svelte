@@ -5,13 +5,15 @@
   import ContactRow from "./ContactRow.svelte";
   // @ts-ignore
   import ChatPage from "./ChatPage.svelte";
-  import {recentContacts, friendContacts, landlordContacts, requestContacts, type Tab} from "./tempdata";
+  import {recentContacts, friendContacts as initialFriendContacts, landlordContacts, requestContacts as initialRequestContacts, type Tab} from "./tempdata";
   import {Users, House, Mail} from "@lucide/svelte";
   type Contact = {name: string, image?: string};
   
   let selectedTab: Tab = "friends";
   let selectedContact: Contact | null = null;
   let search = "";
+  let friendContacts = [...initialFriendContacts];
+  let requestContacts = [...initialRequestContacts];
   $: shownContacts = (selectedTab === "friends" ? friendContacts : selectedTab === "landlords" ? landlordContacts : requestContacts) as Contact[];
   $: filteredContacts = shownContacts.filter(contact => contact.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -21,6 +23,15 @@
   function closeChat(){
     selectedContact = null;
   }
+  function acceptRequest(contact: Contact){
+    console.log("Accepting request from", contact.name);
+    requestContacts = requestContacts.filter(c => c.name !== contact.name);
+    friendContacts = [...friendContacts, contact];
+  }
+  function rejectRequest(contact: Contact){
+    console.log("Rejecting request from", contact.name);
+    requestContacts = requestContacts.filter(c => c.name !== contact.name);
+}
 </script>
 
 <div class = "flex-1 flex overflow-hidden">
@@ -32,7 +43,7 @@
                     <div class = "space-y-3">
                     <SidebarButton text="Friends" icon= {Users} active = {selectedTab === "friends"} onClick={() => selectedTab = "friends"}/>
                     <SidebarButton text="Landlords" icon= {House} active = {selectedTab === "landlords"} onClick={() => selectedTab = "landlords"}/>
-                    <SidebarButton text="Message Requests" icon= {Mail} active = {selectedTab === "requests"} onClick={() => selectedTab = "requests"}/>
+                    <SidebarButton text="Message Requests" icon= {Mail} active = {selectedTab === "requests"} onClick={() => selectedTab = "requests"} count={requestContacts.length}/>
                     </div>
 
                     <div class = "my-5 border-t border-white"></div>
@@ -67,7 +78,9 @@
                                     onMessageClick={() => openChat(contact)}
                                     onDelete={() => console.log("delete", contact.name)}
                                     onReport={() => console.log("report", contact.name)}
-        />
+                                    onAccept={() => acceptRequest(contact)}
+                                    onReject={() => rejectRequest(contact)}
+                                />  
                             {/each}
                         </div>
                     {/if}

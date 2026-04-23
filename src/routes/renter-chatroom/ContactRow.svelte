@@ -1,15 +1,17 @@
 <script lang="ts">
-    import {MessageSquare, EllipsisVertical} from "@lucide/svelte";
+    import {MessageSquare, EllipsisVertical, Trash2, Check} from "@lucide/svelte";
     interface Props {
         name: string;
         image?: string;
-        type?: "friend" | "landlord" | "request";
+        type?: "friend" | "landlord" | "requests";
         onMessageClick?: () => void;
         onReport?: () => void;
         onDelete?: () => void;
+        onAccept?: () => void;
+        onReject?: () => void;
     };
 
-    const { name, image, type = "friend", onMessageClick, onReport, onDelete }: Props = $props();
+    const { name, image, type = "friend", onMessageClick, onReport, onDelete, onAccept, onReject }: Props = $props();
 
     let menuOpen = $state(false);
 
@@ -64,24 +66,29 @@
             </button>
 
             {#if menuOpen}
-                    <div class="absolute right-0 top-9 z-50 bg-white border border-zinc-200 rounded-lg shadow-lg py-1 w-40">
-                        {#if type === "friend"}
-                            <button
-                                class="w-full text-left px-4 py-2 text-sm text-black-500 hover:bg-zinc-100 transition-colors"
-                                onclick={() => { onDelete?.(); menuOpen = false; }}
-                            >
-                                Remove Friend
-                            </button>
-                        {/if}
-
-                        {#if type === "landlord"}
-                            <button
-                                class="w-full text-left px-4 py-2 text-sm text-black-500 hover:bg-zinc-100 transition-colors"
-                                onclick={() => { onDelete?.(); menuOpen = false; }}
-                            >
-                                Remove Landlord
-                            </button>
-                        {/if}
+                <div class="absolute right-0 top-9 z-50 bg-white border border-zinc-200 rounded-lg shadow-lg py-1 w-40">
+                    <!-- Friend List -->
+                    {#if type === "friend"}
+                        <button
+                            class="w-full text-left px-4 py-2 text-sm text-black-500 hover:bg-zinc-100 transition-colors"
+                            onclick={() => { onDelete?.(); menuOpen = false; }}
+                        >
+                            Remove Friend
+                        </button>
+                        <button
+                            class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-zinc-100 transition-colors"
+                            onclick={() => { onReport?.(); menuOpen = false; }}
+                        >
+                            Report
+                        </button>
+                    <!-- Landlord List -->
+                    {:else if type === "landlord"}
+                        <button
+                            class="w-full text-left px-4 py-2 text-sm text-black-500 hover:bg-zinc-100 transition-colors"
+                            onclick={() => { onDelete?.(); menuOpen = false; }}
+                        >
+                            Remove Landlord
+                        </button>
 
                         <button
                             class="w-full text-left px-4 py-2 text-sm text-black-500 hover:bg-zinc-100 transition-colors"
@@ -96,7 +103,20 @@
                         >
                             Report
                         </button>
-                    </div>
+                    <!-- Request List -->
+                    {:else if type === "requests"}
+                        <button class="w-full flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-zinc-100 transition-colors"
+                        onclick={() => { onAccept?.(); menuOpen = false; }}>
+                            <Check size={16} />
+                            Accept
+                        </button>
+                        <button class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-zinc-100 transition-colors"
+                        onclick={() => { onReject?.(); menuOpen = false; }}>
+                            <Trash2 size={16} />
+                            Reject
+                        </button>
+                    {/if}
+                </div>
             {/if}
         </div>
     </div>
