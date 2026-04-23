@@ -83,6 +83,7 @@
             </div>
         {:else}
             {#each filteredSearch as listing (listing.id)}
+             <a href={`/listings/${listing.id}`}>
               <Card class="p-3 space-y-3">
                 <img
                   src={listing.img ?? "/listing-placeholder.png"}
@@ -122,6 +123,7 @@
                   </p>
                 </div>
               </Card>
+             </a>
             {/each}
         {/if}
       </div>
