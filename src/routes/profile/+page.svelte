@@ -3,6 +3,12 @@
   import Progress from "$lib/components/Progress.svelte";
 	import Preference from "./Preference.svelte";
   import { SquarePen } from "@lucide/svelte";
+  import Avatar from '$lib/components/Avatar.svelte'
+
+  let profile = {
+    avatarUrl: '',
+    firstName: 'Amanda'
+  }
 
   let organization = 0;
   let cleanliness = 0;
@@ -34,7 +40,11 @@
     </div>
 
     <Card class="flex gap-6">
-      <div class="w-24 h-24 rounded-full bg-zinc-200"></div>
+     <Avatar
+       avatarUrl={profile.avatarUrl}
+       firstName={profile.firstName}
+    />
+      <!--<div class="w-24 h-24 rounded-full bg-zinc-200">Text</div>-->
     </Card>
 
     <form method="POST" action="?/create">
