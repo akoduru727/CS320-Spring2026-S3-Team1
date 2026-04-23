@@ -41,9 +41,9 @@
                 <!--Left Sidebar-->
                 <div class = "w-72 bg-zinc-400 p-4 flex flex-col">
                     <div class = "space-y-3">
-                    <SidebarButton text="Friends" icon= {Users} active = {selectedTab === "friends"} onClick={() => selectedTab = "friends"}/>
-                    <SidebarButton text="Landlords" icon= {House} active = {selectedTab === "landlords"} onClick={() => selectedTab = "landlords"}/>
-                    <SidebarButton text="Message Requests" icon= {Mail} active = {selectedTab === "requests"} onClick={() => selectedTab = "requests"} count={requestContacts.length}/>
+                    <SidebarButton text="Friends" icon= {Users} active = {selectedTab === "friends"} onClick={() => {selectedTab = "friends"; selectedContact = null;}}/>
+                    <SidebarButton text="Landlords" icon= {House} active = {selectedTab === "landlords"} onClick={() => {selectedTab = "landlords"; selectedContact = null;}}/>
+                    <SidebarButton text="Message Requests" icon= {Mail} active = {selectedTab === "requests"} onClick={() => {selectedTab = "requests"; selectedContact = null;}} count={requestContacts.length}/>
                     </div>
 
                     <div class = "my-5 border-t border-white"></div>
