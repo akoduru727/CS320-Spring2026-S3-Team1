@@ -1,12 +1,33 @@
 <script lang="ts">
   import Perk from "./Perk.svelte";
   import { Check, X, Share, Star } from "@lucide/svelte";
+  import { page } from "$app/state";
 
   const { data, form } = $props();    
   const listing = $derived(data.listing);
   const isFavorite = $derived(data.isFavorite);
 
   const pluralize = (word: string, count: number): string => `${count} ${word}${count === 1 ? "" : "s"}`;
+
+  let copied = $state(false);
+
+  const copyLink = async () => {
+    if (!navigator.clipboard) {
+      alert("Clipboard unsupported in this environment.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(page.url.href);
+      copied = true;
+      setTimeout(() => {
+        copied = false;
+      }, 3000);
+    } catch {
+      alert("Failed to copy URL to clipboard.");
+      return;
+    }
+  };
 </script>
 
 <div class="flex-1 overflow-y-auto">
@@ -20,11 +41,11 @@
       <h1 class="text-3xl font-medium tracking-tight">
         {listing.title}
       </h1>
-      <div class="flex gap-6">
+      <div class="flex gap-3">
         <form method="POST" action="?/toggleFavorite">
           <button
             type="submit"
-            class="flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
+            class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium bg-zinc-100 hover:bg-zinc-50 border border-zinc-300 transition-colors"
             aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
             title={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
@@ -32,9 +53,13 @@
             <span>{isFavorite ? "Unfavorite" : "Favorite"}</span>
           </button>
         </form>
-        <!-- TODO: make this do something -->
-        <button class="hover:text-zinc-700 transition-colors">
-          <Share />
+        <button 
+          onclick={copyLink}
+          disabled={copied}
+          class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium bg-zinc-100 hover:bg-zinc-50 transition-colors border border-zinc-300 disabled:opacity-50"
+        >
+          <Share size={16} />
+          <span>{copied ? "Copied!" : "Share"}</span>
         </button>
       </div>
     </div>
