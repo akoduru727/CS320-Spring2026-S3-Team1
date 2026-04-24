@@ -1,6 +1,6 @@
 <script lang="ts">
   import Perk from "./Perk.svelte";
-  import { Check, X, Share, Star } from "@lucide/svelte";
+  import { Share, Star, Mail } from "@lucide/svelte";
   import { page } from "$app/state";
 
   const { data, form } = $props();    
@@ -60,6 +60,13 @@
         >
           <Share size={16} />
           <span>{copied ? "Copied!" : "Share"}</span>
+        </button>
+        <!-- TODO: make this do something -->
+        <button 
+          class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium bg-zinc-100 hover:bg-zinc-50 transition-colors border border-zinc-300"
+        >
+          <Mail size={16} />
+          <span>Contact</span>
         </button>
       </div>
     </div>
