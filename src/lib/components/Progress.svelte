@@ -19,7 +19,7 @@
     <div 
       class="flex-1 h-2 rounded-full cursor-pointer transition ease-in-out duration-200"
       class:bg-zinc-300={i >= level}
-      class:bg-red-500={i < level}
+      class:bg-red-800={i < level}
       onclick={() => setLevel(i + 1)}
     >
     </div>
