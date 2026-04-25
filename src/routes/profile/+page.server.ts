@@ -1,5 +1,88 @@
 import { fail, redirect } from "@sveltejs/kit";
-import type { Actions } from "./$types";
+import type { Actions, PageServerLoad } from "./$types";
+
+type PreferenceRecord = {
+  tenant: string;
+  organization: number;
+  noise: number;
+  cleanliness: number;
+  sleep_schedule: string | null;
+  pets: boolean;
+  smoking: boolean;
+  overnight_guests: boolean;
+};
+
+const isAdjacentLevelMatch = (currentLevel: number, candidateLevel: number) => {
+  return Math.abs(currentLevel - candidateLevel) === 1;
+};
+
+const isExactMatch = <T>(currentValue: T, candidateValue: T) => {
+  return currentValue === candidateValue;
+};
+
+const isRoommateMatch = (currentTenant: PreferenceRecord, candidateTenant: PreferenceRecord) => {
+  if (currentTenant.tenant === candidateTenant.tenant) {
+    return false;
+  }
+
+  const organizationMatches = isAdjacentLevelMatch(currentTenant.organization, candidateTenant.organization);
+  const noiseMatches = isAdjacentLevelMatch(currentTenant.noise, candidateTenant.noise);
+  const cleanlinessMatches = isAdjacentLevelMatch(currentTenant.cleanliness, candidateTenant.cleanliness);
+
+  const sleepMatches = isExactMatch(currentTenant.sleep_schedule, candidateTenant.sleep_schedule);
+  const petsMatch = isExactMatch(currentTenant.pets, candidateTenant.pets);
+  const smokingMatches = isExactMatch(currentTenant.smoking, candidateTenant.smoking);
+  const overnightMatches = isExactMatch(currentTenant.overnight_guests, candidateTenant.overnight_guests);
+
+  return (
+    organizationMatches &&
+    noiseMatches &&
+    cleanlinessMatches &&
+    sleepMatches &&
+    petsMatch &&
+    smokingMatches &&
+    overnightMatches
+  );
+};
+
+export const load: PageServerLoad = async ({ locals }) => {
+  const user = locals.user;
+  if (!user) return redirect(303, "/login");
+
+  if (locals.accountType !== "tenant") {
+    return {
+      roommateMatches: [],
+    };
+  }
+
+  const { data, error } = await locals.supabase
+    .from("preferences")
+    .select("tenant, organization, noise, cleanliness, sleep_schedule, pets, smoking, overnight_guests");
+
+  if (error) {
+    console.log(error);
+    return {
+      roommateMatches: [],
+    };
+  }
+
+  const preferences = (data ?? []) as PreferenceRecord[];
+  const currentTenantPreferences = preferences.find(({ tenant }) => tenant === user.id);
+
+  if (!currentTenantPreferences) {
+    return {
+      roommateMatches: [],
+    };
+  }
+
+  const roommateMatches = preferences.filter((candidateTenant) =>
+    isRoommateMatch(currentTenantPreferences, candidateTenant)
+  );
+
+  return {
+    roommateMatches,
+  };
+};
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
