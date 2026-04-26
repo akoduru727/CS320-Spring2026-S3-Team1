@@ -13,15 +13,17 @@
 
   let routes: Route[] = $derived(
     accountType === "tenant" ? [
+      { name: "Search", href: "/search" },
       { name: "Profile", href: "/profile" },
       { name: "Connect", href: "/" },
       { name: "Chats", href: "/" },
       { name: "Favorites", href: "/favorites" },
       { name: "History", href: "/" },
       { name: "About", href: "/" },
-      { name: "Application Portal", href: "/renter-landing" },
+      { name: "Application Portal", href: "/" },
     ] : accountType === "landlord" ? [
-      { name: "Your Listings", href: "/dashboard" },
+      { name: "Dashboard", href: "/dashboard" },
+      { name: "Create Listing", href: "/create-listing" },
       { name: "Application Portal", href: "/" },
       { name: "Chats", href: "/" },
       { name: "About", href: "/" },
@@ -31,7 +33,7 @@
 
 <nav class="flex items-center justify-between bg-zinc-100 p-4 shadow">
   <a href="/">
-    <span class="select-none text-3xl font-bold tracking-tighter text-red-500">amhrest</span>
+    <span class="select-none text-3xl font-bold tracking-tighter text-red-800">amhrest</span>
   </a>
 
   <div class="flex items-center gap-9">

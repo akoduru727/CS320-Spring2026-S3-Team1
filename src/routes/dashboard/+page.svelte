@@ -24,11 +24,12 @@
             Your listings
           </h2>
 
-          <button class="bg-red-800 hover:bg-red-700 transition-colors text-zinc-100 text-sm font-medium px-3 py-2 flex items-center gap-2 rounded">
-            <span>
-              Post listing
-            </span>
-          </button>
+          <a 
+            href="/post-listing" 
+            class="bg-red-800 hover:bg-red-700 transition-colors text-zinc-100 text-sm font-medium px-3 py-2 flex items-center gap-2 rounded"
+          >
+            Post listing
+          </a>
         </div>
 
         <div class="flex w-full flex-col items-stretch gap-3 pr-6 overflow-y-auto">

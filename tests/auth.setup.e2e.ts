@@ -10,7 +10,7 @@ setup('save logged in session', async ({ page }) => {
         email: 'playwright@example.com',
         account_type: 'landlord',
       }),
-      url: 'http://localhost:4173',
+      url: 'http://127.0.0.1:4174',
     },
   ]);
 

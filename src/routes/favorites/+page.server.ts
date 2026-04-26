@@ -1,47 +1,8 @@
-import type { PageServerLoad } from "./$types";
+import { fail, redirect } from "@sveltejs/kit";
+import type { Actions, PageServerLoad } from "./$types";
 
 /** Served from `static/listing-placeholder.png` */
 const PLACEHOLDER_IMAGE = "/listing-placeholder.png";
-
-type FavoriteListing = {
-  address: string;
-  distanceFromCampusMi: number;
-  description: string;
-  imageUrl?: string | null;
-};
-
-const favorites: FavoriteListing[] = [
-  {
-    address: "26 Spring Street",
-    distanceFromCampusMi: 4,
-    description:
-      "Spacious apartment with natural light and a short commute to campus."
-  },
-  {
-    address: "11 East Pleasant",
-    distanceFromCampusMi: 5,
-    description:
-      "Modern unit close to restaurants, study spaces, and bus routes."
-  },
-  {
-    address: "42 Riverwalk Drive",
-    distanceFromCampusMi: 3,
-    description:
-      "Quiet neighborhood option with updated kitchen and in-unit laundry."
-  },
-  {
-    address: "42 Riverwalk Drive",
-    distanceFromCampusMi: 3,
-    description:
-      "Quiet neighborhood option with updated kitchen and in-unit laundry."
-  },
-  {
-    address: "42 Riverwalk Drive",
-    distanceFromCampusMi: 3,
-    description:
-      "Quiet neighborhood option with updated kitchen and in-unit laundry."
-  }
-];
 
 function resolveListingImage(url: string | null | undefined) {
   const trimmed = url?.trim();
@@ -52,14 +13,82 @@ function isPlaceholderImage(url: string | null | undefined) {
   return !url?.trim();
 }
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+  if (locals.accountType !== "tenant") return redirect(303, "/");
+  if (!locals.user) return redirect(303, "/login");
+
+  const { data: tenantRow, error: tenantError } = await locals.supabase
+    .from("tenants")
+    .select("favorite_houses")
+    .eq("id", locals.user.id)
+    .single();
+  if (tenantError) {
+    console.error(tenantError);
+    return { favorites: [], message: tenantError.message };
+  }
+
+  const favoriteIds = (tenantRow?.favorite_houses ?? []) as string[];
+  if (favoriteIds.length === 0) return { favorites: [] };
+
+  const { data: listingRows, error: listingError } = await locals.supabase
+    .from("listings")
+    .select()
+    .in("id", favoriteIds);
+  if (listingError) {
+    console.error(listingError);
+    return { favorites: [], message: listingError.message };
+  }
+
+  const order = new Map(favoriteIds.map((id, i) => [id, i]));
+  const listings = (listingRows ?? []).sort(
+    (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)
+  );
+
   return {
-    favorites: favorites.map((listing) => ({
+    favorites: listings.map((listing) => ({
+      id: listing.id,
+      title: listing.title,
       address: listing.address,
-      distanceFromCampusMi: listing.distanceFromCampusMi,
-      description: listing.description,
-      imageSrc: resolveListingImage(listing.imageUrl),
-      isPlaceholder: isPlaceholderImage(listing.imageUrl)
+      distanceFromCampusMi: listing.distance_from_campus_mi ?? 0,
+      imageSrc: resolveListingImage(listing.image_url),
+      isPlaceholder: isPlaceholderImage(listing.image_url),
     }))
   };
+};
+
+export const actions: Actions = {
+  remove: async ({ request, locals, url }) => {
+    if (locals.accountType !== "tenant") return redirect(303, "/");
+    if (!locals.user) return redirect(303, "/login");
+    const formData = await request.formData();
+    const listingId = formData.get("id");
+    if (typeof listingId !== "string" || !listingId) return;
+
+    const { data: tenantRow, error: tenantError } = await locals.supabase
+      .from("tenants")
+      .select("favorite_houses")
+      .eq("id", locals.user.id)
+      .single();
+    if (tenantError) {
+      console.error(tenantError);
+      return fail(500, { message: tenantError.message });
+    }
+
+    const favoriteIds = (tenantRow?.favorite_houses ?? []) as string[];
+    const nextFavorites = favoriteIds.filter((id) => id !== listingId);
+
+    const { data: updatedTenant, error: updateError } = await locals.supabase
+      .from("tenants")
+      .update({ favorite_houses: nextFavorites })
+      .eq("id", locals.user.id)
+      .select("favorite_houses")
+      .single();
+    if (updateError) {
+      console.error(updateError);
+      return fail(500, { message: updateError.message });
+    }
+    if (!updatedTenant) return fail(500, { message: "Favorite update failed (no row returned)." });
+
+    return redirect(303, url.pathname);
+  }
 };

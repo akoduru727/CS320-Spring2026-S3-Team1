@@ -12,7 +12,7 @@
 
 <Card class="flex justify-between">
   <div class="flex items-center gap-6">
-    <div class="h-20 w-20 bg-zinc-300" />
+    <div class="h-20 w-20 bg-zinc-300"></div>
 
     <div>
       <p class="text-lg font-medium">
@@ -25,11 +25,11 @@
   </div>
 
   <div class="flex items-center gap-6">
-    <button class="hover:text-zinc-700 transition-colors">
+    <button aria-label="Edit listing" class="hover:text-zinc-700 transition-colors">
       <SquarePen />
     </button>
 
-    <button class="hover:text-zinc-700 transition-colors">
+    <button aria-label="Delete listing" class="hover:text-zinc-700 transition-colors">
       <X size={30} />
     </button>
   </div>
