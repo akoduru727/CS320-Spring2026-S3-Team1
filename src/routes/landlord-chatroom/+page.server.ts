@@ -22,11 +22,12 @@ export const load: PageServerLoad = async ({ locals }) =>{
         .from("conversation").select("id, chat_participants, messages_id").contains("chat_participants", [userId]);
     
     const { data: messageRows } = await locals.supabase
-        .from("message").select("id, created_at, sender, message_content, conversation_id, is_read, read_at").in("id", conversations?.flatMap(conv => conv.messages_id as string[] || []) ?? []);
+        .from("message").select("id, created_at, sender, messages_content, conversation_id, is_read, read_at").in("conversation_id", conversations?.map(conv => conv.id) ?? []);
     return {
         contacts: contactRows ?? [],
         conversations: conversations ?? [],
-        messages: messageRows ?? []
+        messages: messageRows ?? [],
+        currentUserId: userId
     };
 };
 

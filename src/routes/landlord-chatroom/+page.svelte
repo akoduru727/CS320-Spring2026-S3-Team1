@@ -5,23 +5,36 @@
   import ChatPage from "./ChatPage.svelte";
   //import {recentContacts, requestContacts, type Tab} from "./tempdata";
   //import {Users} from "@lucide/svelte";
-  type Contact = {id: string, name: string, image?: string};
+  type Contact = {id: string, name: string};
 
-  export let data; //from +page.server.ts
+  export let data:{
+    contacts: Contact[];
+    conversations: {id: string, chat_participants: string[], messages_id: string[]}[];
+    messages: {id: string, created_at: string, sender: string, messages_content: string, conversation_id: string, is_read: boolean, read_at: string | null}[];
+    currentUserId: string;
+  }; //from +page.server.ts
 
   let contacts: Contact[] = data.contacts;
   let conversations = data.conversations;
+  let messages = data.messages;
   let selectedContact: Contact | null = null;
   let selectedConversationId: string | null = null;
   let search = "";
   $: filteredContacts = contacts.filter(contact => contact.name.toLowerCase().includes(search.toLowerCase()));
+  $: unreadCountPerContact = Object.fromEntries(contacts.map(contact => {
+    const convo = conversations.find(c => (c.chat_participants as string[]).includes(contact.id));
+    const unreadCount = convo ? messages.filter(m => m.conversation_id === convo.id && !m.is_read && m.sender !== data.currentUserId).length : 0;
+    return [contact.id, unreadCount];
+  }));
 
   function openChat(contact: Contact){
     selectedContact = contact;
     //Find existing conversation with this contact
     const conversation = conversations.find(convo => 
         (convo.chat_participants as string[]).includes(contact.id));
-    selectedConversationId = conversation?.id ?? null; //
+    selectedConversationId = conversation?.id ?? null;
+    console.log("conversation found:", conversation);
+    console.log("all conversations:", conversations);
   }
   function closeChat(){
     selectedContact = null;
@@ -41,8 +54,8 @@
                         <p class="text-sm font-semibold text-white uppercase tracking-wider mb-2 px-1">Recent Contacts</p>
                         <div class="border-b border-white mb-3"></div>
 
-                        {#each contacts as contact (contact.name)}
-                            <RecentContact name={contact.name} image = {contact.image} onClick={() => openChat(contact)}/>
+                        {#each contacts as contact (contact.id)}
+                            <RecentContact name={contact.name} onClick={() => openChat(contact)}/>
                         {/each}
                     </div>
                 </div>
@@ -50,7 +63,7 @@
                 <!--Right Side-->
                 <div class = "flex-1 bg-zinc-100 p-4 flex flex-col">
                     {#if selectedContact && selectedConversationId}
-                        {#key selectedContact.name}
+                        {#key selectedContact.id}
                             <!-- Chat View -->
                             <ChatPage contact = {selectedContact} conversationId = {selectedConversationId} onBack={closeChat}/>
                         {/key}
@@ -61,8 +74,8 @@
                         </div>
                         <!-- Contact List Area -->
                         <div class = "flex-1 bg-zinc-300 rounded-lg p-4 space-y-4 overflow-y-auto">
-                            {#each filteredContacts as contact (contact.name)}
-                                <ContactRow name={contact.name} image = {contact.image} onMessageClick={() => openChat(contact)}/>
+                            {#each filteredContacts as contact (contact.id)}
+                                <ContactRow name={contact.name} unreadCount = {unreadCountPerContact[contact.id] ?? 0} onMessageClick={() => openChat(contact)}/>
                             {/each}
                         </div>
                     {/if}

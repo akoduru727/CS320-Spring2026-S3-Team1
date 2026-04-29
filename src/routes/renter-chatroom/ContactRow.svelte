@@ -2,8 +2,8 @@
     import {MessageSquare, EllipsisVertical, Trash2, Check} from "@lucide/svelte";
     interface Props {
         name: string;
-        image?: string;
         type?: "friend" | "landlord" | "requests";
+        unreadCount?: number;
         onMessageClick?: () => void;
         onReport?: () => void;
         onDelete?: () => void;
@@ -11,7 +11,7 @@
         onReject?: () => void;
     };
 
-    const { name, image, type = "friend", onMessageClick, onReport, onDelete, onAccept, onReject }: Props = $props();
+    const { name, type = "friend", unreadCount = 0, onMessageClick, onReport, onDelete, onAccept, onReject }: Props = $props();
 
     let menuOpen = $state(false);
 
@@ -41,16 +41,23 @@
 
 <div class="w-full flex items-center gap-3 bg-zinc-200 rounded-lg p-3 text-left">
     <!-- Profile Pic -->
-    {#if image}
-        <img src={image} alt="Profile Picture" class="w-8 h-8 rounded-full object-cover shrink-0"/>
-    {:else}
-         <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0"></div>
-    {/if}
+    <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0 flex items-center justify-center">
+        <span class="text-white text-sm font-semibold">
+            {name[0].toUpperCase()}
+        </span>
+    </div>
 
     <!-- Name -->
     <p class = "text-black font-medium truncate">
         {name}
     </p>
+
+    <!-- Unread Count -->
+    {#if unreadCount > 0}
+        <span class="min-w-[22px] h-6 px-2 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            {unreadCount}
+        </span>
+    {/if}
 
     <div class = "ml-auto flex items-center gap-3">
         <!-- Chat Message Icon (for now) -->

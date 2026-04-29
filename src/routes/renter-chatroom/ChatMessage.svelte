@@ -1,23 +1,22 @@
 <script lang="ts">
     interface Props {
         senderName: string;
-        profilePic?: string;
         text: string;
         user: "self" | "other";
         date: Date;
     };
-    const { senderName, profilePic, text, user, date}: Props = $props();
+    const { senderName, text, user, date}: Props = $props();
 </script>
 
 {#if user === "other"}
     <!-- Left Side -->
     <div class = "w-full flex justify-start">
-        <div class = "items-start gap-3 max-w-[70%]">
-            {#if profilePic}
-                <img src={profilePic} alt="Profile Picture" class="w-8 h-8 rounded-full object-cover shrink-0"/>
-            {:else}
-                <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0"></div>
-            {/if}
+        <div class = "flex items-start gap-3 max-w-[70%]">
+            <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0 flex items-center justify-center">
+                <span class="text-white text-sm font-semibold">
+                    {senderName[0].toUpperCase()}
+                </span>
+            </div>
             <div>
                 <p class= "text-base font-semibold text-black">{senderName}</p>
             </div>
@@ -29,11 +28,11 @@
     <!-- Right Side -->
     <div class = "w-full flex justify-end">
         <div class = "flex items-start gap-3 flex-row-reverse max-w-[70%]">
-            {#if profilePic}
-                <img src={profilePic} alt="Profile Picture" class="w-8 h-8 rounded-full object-cover shrink-0"/>
-            {:else}
-                <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0"></div>
-            {/if}
+            <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0 flex items-center justify-center">
+                <span class="text-white text-sm font-semibold">
+                    Y
+                </span>
+            </div>
             <div>
                 <p class= "text-base font-semibold text-black">{senderName}</p>
             </div>

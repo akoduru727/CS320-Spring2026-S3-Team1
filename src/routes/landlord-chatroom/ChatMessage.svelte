@@ -1,12 +1,11 @@
 <script lang="ts">
   interface Props {
     senderName: string;
-    profilePic?: string;
     text: string;
     user: "self" | "other";
     date: Date;
   }
-  const { senderName, profilePic, text, user, date }: Props = $props();
+  const { senderName, text, user, date }: Props = $props();
 
   function formatTime(d: Date): string {
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -15,11 +14,11 @@
 
 <div class="flex {user === 'self' ? 'flex-row-reverse' : 'flex-row'} items-end gap-2">
   <!-- Avatar -->
-  {#if profilePic}
-    <img src={profilePic} alt={senderName} class="w-8 h-8 rounded-full object-cover shrink-0" />
-  {:else}
-    <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0"></div>
-  {/if}
+  <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0 flex items-center justify-center">
+    <span class="text-white text-sm font-semibold">
+      {user === 'self' ? 'Y' : senderName[0].toUpperCase()}
+    </span>
+  </div>
 
   <!-- Bubble -->
   <div class="flex flex-col {user === 'self' ? 'items-end' : 'items-start'} max-w-[70%]">

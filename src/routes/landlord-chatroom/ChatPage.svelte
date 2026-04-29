@@ -4,13 +4,11 @@
     import {supabase} from '$lib/supabase';
 
     interface Contact{
-        id: string;
+        //id: string;
         name: string;
-        image?: string;
     }
     interface Message {
         senderName: string;
-        profilePic?: string;
         text: string;
         user: "self" | "other";
         date: Date;
@@ -26,6 +24,7 @@
     let chatArea: HTMLDivElement;
     let messages = $state<Message[]>([]);
     let currentUserId = $state<string | null>(null);
+    
     async function scrollToBottom(){
         await tick();
         chatArea.scrollTop = chatArea.scrollHeight;
@@ -85,18 +84,18 @@
     <!-- Header -->
     <div class = "mb-4 flex items-center gap-3">
         <button class="rounded-lg px-3 py-2 hover:bg-zinc-200 cursor-pointer" onclick={onBack}> Back </button>
-        {#if contact.image}
-            <img src={contact.image} alt="Profile Picture" class="w-8 h-8 rounded-full object-cover shrink-0"/>
-        {:else}
-            <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0"></div>
-        {/if}
+        <div class="w-8 h-8 bg-orange-300 rounded-full shrink-0 flex items-center justify-center">
+            <span class="text-white text-sm font-semibold">
+                {contact.name[0].toUpperCase()}
+            </span>
+        </div>
         <p class= "text-base font-semibold text-black">{contact.name}</p>
     </div>
     <!-- Chat Area -->
     <div bind:this={chatArea} class = "flex-1 bg-zinc-300 rounded-lg p-4 overflow-y-auto space-y-4 min-h-0">
         <div class = "flex flex-col justify-end min-h-full space-y-4">
             {#each messages as message, index (index)}
-                <ChatMessage senderName={message.senderName} profilePic={message.profilePic} text={message.text} user={message.user} date={message.date}/>
+                <ChatMessage senderName={message.senderName} text={message.text} user={message.user} date={message.date}/>
             {/each}
         </div>
     </div>
