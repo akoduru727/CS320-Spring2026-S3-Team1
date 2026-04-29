@@ -21,8 +21,18 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     .single();
   if (tenantError) console.error(tenantError);
   const favoriteIds = (tenantRow?.favorite_houses ?? []) as string[];
+  const { data: applications, error: appError } = await locals.supabase
+    .from("applications")
+    .select("listing")
+    .eq("tenant", locals.user.id);
 
-  return { listing: data, isFavorite: favoriteIds.includes(params.slug) };
+  if (appError) console.error(appError);
+
+  const hasApplied = (applications ?? []).some(
+    (a) => a.listing === params.slug
+  );
+
+  return { listing: data, isFavorite: favoriteIds.includes(params.slug), hasApplied };
 };
 
 export const actions: Actions = {
@@ -60,5 +70,38 @@ export const actions: Actions = {
     if (!updatedTenant) return fail(500, { message: "Favorite update failed (no row returned)." });
 
     return redirect(303, url.pathname);
+  },
+  
+  apply: async ({ locals, params }) => {
+    if (locals.accountType !== "tenant") return redirect(303, "/");
+    if (!locals.user) return redirect(303, "/login");
+
+    const { data: listing, error } = await locals.supabase
+      .from("listings")
+      .select("id, landlord")
+      .eq("id", params.slug)
+      .single();
+
+    if (error || !listing) {
+      console.error(error);
+      return fail(500, { message: "Listing not found" });
+    }
+
+    const { error: insertError } = await locals.supabase
+      .from("applications")
+      .insert({
+        tenant: locals.user.id,
+        landlord: listing.landlord,
+        listing: listing.id,
+        status: "pending",
+        message: ""
+      });
+
+    if (insertError) {
+      console.error(insertError);
+      return fail(500, { message: insertError.message });
+    }
+
+    return redirect(303, `/listings/${params.slug}`);
   }
 };

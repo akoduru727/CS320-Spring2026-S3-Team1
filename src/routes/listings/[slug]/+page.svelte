@@ -103,11 +103,43 @@
       </div>
     </div>
 
-    <!-- TODO: make this do something -->
-    <button
-      class="rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-1.5 font-medium text-zinc-100"
-    >
-      Apply
-    </button>
+    <!-- APPLY SECTION -->
+    {#if !data.hasApplied}
+
+    <form method="POST" action="?/apply">
+      <button
+        type="submit"
+        class="rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-1.5 font-medium text-zinc-100"
+      >
+        Apply
+      </button>
+    </form>
+
+    {:else}
+      <div class="text-green-600 font-medium">
+        Applied ✓
+      </div>
+
+    {#if listing.application_type === "contact"}
+      <div class="text-sm text-zinc-700 mt-2">
+        <p><strong>Email:</strong> {listing.contact_email}</p>
+
+        {#if listing.contact_phone}
+          <p><strong>Phone:</strong> {listing.contact_phone}</p>
+        {/if}
+      </div>
+    {/if}
+
+    {#if listing.application_type === "pdf"}
+      <a
+        href={listing.application_pdf_url}
+        target="_blank"
+        class="text-red-600 hover:underline text-sm mt-2 block"
+      >
+        View Application PDF
+      </a>
+    {/if}
+
+    {/if}
   </div>
 </div>

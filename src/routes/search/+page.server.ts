@@ -10,6 +10,11 @@ export type Listing = {
   address: string | null;
   img: string | null;
   distance_from_campus_mi: number | null;
+  application_type: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  application_pdf_url: string | null;
+  landlord: string;
 };
 
 const COVER_TAG = "cover picture";
@@ -29,7 +34,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const { data: listingRows, error: listingError } = await locals.supabase
     .from("listings")
-    .select("id, title, baths, beds, address, distance_from_campus_mi");
+    .select("id, title, baths, beds, address, distance_from_campus_mi, application_type, contact_email, contact_phone, application_pdf_url, landlord");
   if (listingError) {
     console.error(listingError);
     return { listings: [] as Listing[], favoriteIds, message };
@@ -67,9 +72,25 @@ export const load: PageServerLoad = async ({ locals }) => {
     beds: row.beds,
     address: row.address,
     img: coverUrlByListingId.get(row.id) ?? null,
-    distance_from_campus_mi: row.distance_from_campus_mi ?? null //need to figure this out later how we calculate distance
+    distance_from_campus_mi: row.distance_from_campus_mi ?? null, //need to figure this out later how we calculate distance
+    application_type: row.application_type,
+    contact_email: row.contact_email,
+    contact_phone: row.contact_phone,
+    application_pdf_url: row.application_pdf_url,
+    landlord: row.landlord
   }));
-  return { listings, favoriteIds, message };
+
+  const { data: applicationRows, error: appError } = await locals.supabase
+    .from("applications")
+    .select("listing")
+    .eq("tenant", locals.user.id);
+
+  if (appError) {
+    console.error(appError);
+  }
+  const appliedIds = new Set((applicationRows ?? []).map((a) => a.listing));
+
+  return { listings, favoriteIds, appliedIds, message };
 };
 
 export const actions: Actions = {
