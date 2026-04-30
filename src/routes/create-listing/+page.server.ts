@@ -58,6 +58,9 @@ export const actions: Actions = {
     if (priceResult.value === null) {
       return fail(400, { message: "Monthly rent is required." });
     }
+    if (!Number.isInteger(priceResult.value) || priceResult.value <= 0) {
+      return fail(400, { message: "Price has to be a positive whole number." });
+    }
 
     const bedsResult = parseIntField(formData, "beds", "bedrooms");
     if ("error" in bedsResult) return fail(400, { message: bedsResult.error });
