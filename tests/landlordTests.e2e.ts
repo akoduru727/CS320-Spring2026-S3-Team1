@@ -26,20 +26,21 @@ test.describe('Landlord Dashboard', () => {
 
   //Navbar tests
   test('navbar shows landlord links', async ({ page }) => {
-    await expect(page.getByRole('link', { name: /post listing/i }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /dashboard/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /create listing/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /application portal/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /chats/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /about/i })).toBeVisible();
   });
 
-  test('navbar links navigate correctly', async ({ page }) => {
-    await page.getByRole('link', { name: /post listing/i }).first().click();
-    await expect(page).toHaveURL(/dashboard/);
+  test('navbar links to create listing correctly', async ({ page }) => {
+    await page.getByRole('link', { name: /create listing/i }).first().click();
+    await expect(page).toHaveURL(/create-listing/);
   });
 
   //Post listing button
-  test('post listing button is visible', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /Post Listing/i }).last()).toBeVisible();
+  test('create listing button is visible', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /Create Listing/i }).last()).toBeVisible();
   });
 
   //Listings
