@@ -2,6 +2,9 @@
   import Card from "$lib/components/Card.svelte";
   import Listing from "./Listing.svelte";
   import Stat from "./Stat.svelte";
+
+  const { data } = $props();
+  const { listings } = $derived(data);
 </script>
 
 <div class="flex-1 flex overflow-hidden">
@@ -28,15 +31,18 @@
             href="/create-listing" 
             class="bg-red-800 hover:bg-red-700 transition-colors text-zinc-100 text-sm font-medium px-3 py-2 flex items-center gap-2 rounded"
           >
-            Post listing
+            Create Listing
           </a>
         </div>
 
         <div class="flex w-full flex-col items-stretch gap-3 pr-6 overflow-y-auto">
-          {#each {length: 5} as _}
+          {#each listings as listing (listing.id)}
             <Listing 
-              name="Kendrick Place" 
-              address="123 Kendrick Place" 
+              id={listing.id}
+              name={listing.title}
+              address={listing.address}
+              imageSrc={listing.imageSrc}
+              isPlaceholder={listing.isPlaceholder}
             />
           {/each}
         </div>
@@ -45,7 +51,7 @@
       <div class="flex-1 flex flex-col justify-evenly items-stretch">
         <Stat 
           name="Active Listings" 
-          stat={5} 
+          stat={listings.length} 
           unit="Listing"
         />
         <Stat 
@@ -60,7 +66,7 @@
         />
         <Stat 
           name="Listing Views" 
-          stat={128} 
+          stat={listings.reduce((views, listing) => views + listing.views, 0)} 
           unit="View" 
         />
       </div>

@@ -1,6 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 import { fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
+import { getCoverImageUrlsByListingId } from "$lib/server/listing-images";
 
 export type Listing = {
   id: string;
@@ -11,8 +12,6 @@ export type Listing = {
   img: string | null;
   distance_from_campus_mi: number | null;
 };
-
-const COVER_TAG = "cover picture";
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (locals.accountType !== "tenant") return redirect(303, "/");
@@ -38,26 +37,12 @@ export const load: PageServerLoad = async ({ locals }) => {
   const listingsObj = listingRows ?? [];
   const listingIds = listingsObj.map((listingElem) => listingElem.id).filter((id): id is string => id != null);
 
-  const coverUrlByListingId = new Map<string, string>();
+  let coverUrlByListingId = new Map<string, string>();
 
-  if(listingIds.length > 0){
-    const {data: imageRows, error: imagesError} = await locals.supabase
-      .from("images")
-      .select("listing, url, tag")
-      .eq("tag", COVER_TAG)
-      .in("listing", listingIds);
-
-    if(imagesError){
-      console.error(imagesError);
-    } 
-    else {
-      for (const img of imageRows ?? []) {
-        const imgListingId = img.listing as string | null;
-        if (imgListingId != null && !coverUrlByListingId.has(imgListingId)) {
-          coverUrlByListingId.set(imgListingId, img.url as string);
-        }
-      }
-    }
+  try {
+    coverUrlByListingId = await getCoverImageUrlsByListingId(locals.supabase, listingIds);
+  } catch (imagesError) {
+    console.error(imagesError);
   }
 
   const listings: Listing[] = listingsObj.map((row) => ({
