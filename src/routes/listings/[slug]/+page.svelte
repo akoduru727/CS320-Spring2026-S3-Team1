@@ -162,11 +162,11 @@
       </div>
     </div>
 
-    <!-- TODO: make this do something -->
-    <button
-      class="rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-1.5 font-medium text-zinc-100"
+    <a
+      href={`/application-portal?listing_id=${listing.id}`}
+      class="inline-flex rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-1.5 font-medium text-zinc-100"
     >
       Apply
-    </button>
+    </a>
   </div>
 </div>

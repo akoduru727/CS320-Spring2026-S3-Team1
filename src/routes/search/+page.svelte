@@ -46,10 +46,10 @@
           <div class="flex ">
             <div class=" flex flex-col items-center justify-center gap-5">
             <h1 class="text-5xl font-semibold tracking-tighter">
-              Welcome to your renting dashboard
+              Search Listings
             </h1>
             <p class="text-zinc-600">
-              Search, view, and apply for the listing right for you.
+              Browse available rentals and open a listing to apply.
             </p>
           </div>
         </div>
