@@ -26,7 +26,7 @@
       if(bedValue == 0 || listing.beds == bedValue) {
         bedBool = true;
       } else bedBool = false;
-      if(miValue == 0 || listing.distance_from_campus_mi == miValue) {
+      if(miValue == 0 || listing.distance_from_campus_mi <= miValue) {
         miBool = true;
       } else miBool = false;
       return (
