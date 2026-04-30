@@ -31,6 +31,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
   const savedParam = url.searchParams.get("saved");
   const saved = savedParam === "name" || savedParam === "preferences" ? savedParam : null;
+
   const { data: tenantRow, error: tenantError } = await locals.supabase
     .from("tenants")
     .select("name")
