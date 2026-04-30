@@ -47,7 +47,7 @@
         currentUserId = json.currentUserId;
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
         messages = (messagesData ?? []).map((msg:any) => ({
-            senderName: msg.sender === currentUserId ? "You" : contact.name, text: msg.messages_content, user: msg.sender === currentUserId ? "self" : "other", date: new Date(msg.created_at)
+            senderName: msg.sender === currentUserId ? "You" : contact.name, text: msg.messages_content, user: msg.sender === currentUserId ? "self" : "other", date: new Date(msg.created_at+ "Z") // Append 'Z' to indicate UTC time
         }));
         await scrollToBottom();
     }

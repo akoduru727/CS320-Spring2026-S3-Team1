@@ -47,7 +47,7 @@
             senderName: msg.sender === currentUserId ? "You" : contact.name,
             text: msg.messages_content,
             user: msg.sender === currentUserId ? "self" : "other",
-            date: new Date(msg.created_at)
+            date: new Date(msg.created_at + "Z") // Append 'Z' to indicate UTC time
         }));
         await scrollToBottom();
     }
