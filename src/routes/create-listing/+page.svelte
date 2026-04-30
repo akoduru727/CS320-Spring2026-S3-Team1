@@ -45,7 +45,6 @@
           placeholder="01002"
           field="zip_code"
           pattern={"\\d{5}(?:-\\d{4})?"}
-          required={false}
         />
 
         <TextInput
