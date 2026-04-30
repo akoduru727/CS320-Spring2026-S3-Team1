@@ -9,7 +9,7 @@ export type Listing = {
   beds: number | null;
   address: string | null;
   img: string | null;
-  distanceFromCampusMi: number | null;
+  distance_from_campus_mi: number | null;
 };
 
 const COVER_TAG = "cover picture";
@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const { data: listingRows, error: listingError } = await locals.supabase
     .from("listings")
-    .select("id, title, baths, beds, address, distanceFromCampusMi");
+    .select("id, title, baths, beds, address, distance_from_campus_mi");
   if (listingError) {
     console.error(listingError);
     return { listings: [] as Listing[], favoriteIds, message };
@@ -67,7 +67,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     beds: row.beds,
     address: row.address,
     img: coverUrlByListingId.get(row.id) ?? null,
-    distanceFromCampusMi: row.distanceFromCampusMi ?? null //need to figure this out later how we calculate distance
+    distance_from_campus_mi: row.distance_from_campus_mi ?? null //need to figure this out later how we calculate distance
   }));
   return { listings, favoriteIds, message };
 };

@@ -19,7 +19,7 @@
   let overnight = false;
 </script>
 
-<div class="flex-1">
+<div class="flex-1 overflow-y-auto">
   <section class="max-w-4xl h-full mx-auto p-8 space-y-8">
     <div class="flex justify-between items-center">
       <div>

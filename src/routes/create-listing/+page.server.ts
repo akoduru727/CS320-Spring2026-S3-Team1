@@ -76,7 +76,7 @@ export const actions: Actions = {
     const geoLocJson = (await geoLocObj.json())[0];
     const geoCoords = { latitude: geoLocJson.lat, longitude: geoLocJson.lon };
 
-    const distanceFromCampus = (getDistance(UMASS_COORDS, geoCoords) / 1.609);
+    const distanceFromCampus = (getDistance(UMASS_COORDS, geoCoords) / 1609);
 
     const availableFrom = getString(formData, "available_from") || null;
     const availableTo = getString(formData, "available_to") || null;
@@ -137,7 +137,7 @@ export const actions: Actions = {
       title,
       description,
       status: "Vacant",
-      distanceFromCampusMi: distanceFromCampus,
+      distance_from_campus_mi: distanceFromCampus,
 
       application_type: applicationType,
       contact_email: contactEmail,

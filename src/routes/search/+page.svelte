@@ -26,7 +26,7 @@
       if(bedValue == 0 || listing.beds == bedValue) {
         bedBool = true;
       } else bedBool = false;
-      if(miValue == 0 || listing.distanceFromCampusMi == miValue) {
+      if(miValue == 0 || listing.distance_from_campus_mi == miValue) {
         miBool = true;
       } else miBool = false;
       return (
@@ -115,7 +115,7 @@
                   <p class="text-sm text-zinc-600">
                     Distance from campus
                     <span class="font-medium text-zinc-800">
-                      {listing.distanceFromCampusMi} mi
+                      {listing.distance_from_campus_mi} mi
                     </span>
                   </p>
                   <p class="text-l text-zinc-1000">
