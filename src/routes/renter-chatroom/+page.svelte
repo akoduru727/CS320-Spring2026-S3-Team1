@@ -42,15 +42,37 @@
   $: friendTotalUnread = friendContacts.reduce((sum, c) => sum + (unreadCountPerContact[c.id] ?? 0), 0);
   $: landlordTotalUnread = landlordContacts.reduce((sum, c) => sum + (unreadCountPerContact[c.id] ?? 0), 0);
   $: requestTotalUnread = requestContacts.length;
-  function openChat(contact: Contact & {conversationId?: string | null}){
+  async function openChat(contact: Contact & {conversationId?: string | null}){
+    console.log("openChat called for:", contact.name);
     selectedContact = contact;
     if (contact.conversationId) {
         selectedConversationId = contact.conversationId;
+        console.log("Using existing conversationId:", contact.conversationId);
         return;
     }
-    else{
-        const conversation = conversations.find(convo => (convo.chat_participants as string[]).includes(contact.id));
-        selectedConversationId = conversation?.id ?? null;
+    const existingConversation = conversations.find(convo => (convo.chat_participants as string[]).includes(contact.id));
+    console.log("Existing conversation:", existingConversation);
+    if (existingConversation){
+        selectedConversationId = existingConversation.id;
+        console.log("Found existing conversation:", existingConversation.id);
+        return;
+    }
+    //Form Action to create new conversation if one doesn't exist
+    console.log("Fetching createConversation action...");
+    const formData = new FormData();
+    formData.append("contactId", contact.id);
+    const response = await fetch("?/createConversation", { method: "POST", body: formData });
+    const result = await response.json();
+    console.log("Result:", result);
+    
+    //Parsing the data string
+    const parsedData = JSON.parse(result.data);
+    const conversationId = parsedData[1];
+    if (conversationId){
+        console.log("Creating new conversation...");
+        selectedConversationId = conversationId;
+        conversations = [...conversations, {
+            id: conversationId, chat_participants: [data.currentUserId, contact.id], messages_id: [] }];
     }
   }
   function closeChat(){

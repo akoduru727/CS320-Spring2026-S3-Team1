@@ -61,7 +61,7 @@
 
     <div class = "ml-auto flex items-center gap-3">
         <!-- Chat Message Icon (for now) -->
-        <button class = "p-2 hover:bg-zinc-300 rounded-full transition-colors cursor-pointer" onclick={onMessageClick}> 
+        <button class = "p-2 hover:bg-zinc-300 rounded-full transition-colors cursor-pointer" onclick={() => onMessageClick?.()}> 
             <MessageSquare size={18} />
         </button>
 

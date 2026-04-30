@@ -1,7 +1,7 @@
 <script lang="ts">
     import ChatMessage from "./ChatMessage.svelte";
     import {tick, onMount} from "svelte";
-    import {supabase} from '$lib/supabase';
+    import {supabase} from "$lib/supabase";
 
     interface Contact{
         //id: string;
@@ -30,14 +30,20 @@
         chatArea.scrollTop = chatArea.scrollHeight;
     }
     async function loadMessages(){
-        const { data: { user } } = await supabase.auth.getUser();
-        currentUserId = user?.id ?? null;
-        const { data, error } = await supabase
-            .from("message").select("*").eq("conversation_id", conversationId).order("created_at", { ascending: true });
-        if (error) {
-            console.error("Error fetching messages:", error);
+        const formData = new FormData();
+        formData.append("conversationId", conversationId);
+        const response = await fetch("?/loadMessage", { method: "POST", body: formData });
+        const result = await response.json();
+        if (result.type === "failure") {
+            console.error("Error fetching messages:", result.data);
+            return;
         }
-        messages = (data ?? []).map((msg) => ({
+        const parsedData = JSON.parse(result.data);
+        const json = JSON.parse(parsedData[1]);
+        const messagesData = json.messages;
+        currentUserId = json.currentUserId;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        messages = (messagesData ?? []).map((msg:any) => ({
             senderName: msg.sender === currentUserId ? "You" : contact.name,
             text: msg.messages_content,
             user: msg.sender === currentUserId ? "self" : "other",
@@ -47,12 +53,19 @@
     }
     async function sendMessage(){
         const trimmed = newMessage.trim();
-        if (!trimmed || !currentUserId) return;
-        const { error } = await supabase
-            .from("message").insert(
-                { sender: currentUserId, messages_content: trimmed, conversation_id: conversationId, is_read: false });
-        if (error) console.error("Error sending message:", error);
+        if (!trimmed) return;
+        const formData = new FormData();
+        formData.append("conversationId", conversationId);
+        formData.append("messageContent", trimmed);
+        const response = await fetch("?/sendMessage", { method: "POST", body: formData });
+        const result = await response.json();
+        if (result.type === "failure") {
+            console.error("Error sending message:", result.data);
+            return;
+        }
         newMessage = "";
+        await loadMessages();
+        await scrollToBottom();
     }
     onMount(() => {
         loadMessages();

@@ -1,5 +1,5 @@
-import { redirect } from "@sveltejs/kit";
-import type {PageServerLoad} from "./$types";
+import { redirect, fail } from "@sveltejs/kit";
+import type {PageServerLoad, Actions} from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) =>{
     if (locals.accountType !== "landlord") return redirect(303, "/");
@@ -30,4 +30,28 @@ export const load: PageServerLoad = async ({ locals }) =>{
         currentUserId: userId
     };
 };
+
+export const actions: Actions = {
+    sendMessage: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, {message: "Unauthorized"});
+        const formData = await request.formData();
+        const conversationId = formData.get("conversationId") as string;
+        const messageContent = formData.get("messageContent") as string;
+        if (!conversationId || !messageContent) return fail(400, {message: "Missing conversation ID or message content"});
+        const {error} = await locals.supabase
+            .from("message").insert({ sender: locals.user.id, messages_content: messageContent.trim(), conversation_id: conversationId, is_read: false });
+        if (error) return fail(500, {message: error.message});
+        return {success: true};
+    },
+    loadMessage: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, {message: "Unauthorized"});
+        const formData = await request.formData();
+        const conversationId = formData.get("conversationId") as string;
+        if (!conversationId) return fail(400, {message: "Missing conversation ID"});
+        const {data, error} = await locals.supabase
+            .from("message").select("*").eq("conversation_id", conversationId).order("created_at", {ascending: true});
+        if (error) return fail(500, {message: error.message});
+        return {json: JSON.stringify({messages: data ?? [], currentUserId: locals.user.id})};
+    }
+}
 
