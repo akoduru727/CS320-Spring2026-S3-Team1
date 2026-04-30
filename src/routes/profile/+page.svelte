@@ -1,14 +1,14 @@
-<script lang="ts">
-  import { onMount } from "svelte";
-  import Card from "$lib/components/Card.svelte";
-  import Progress from "$lib/components/Progress.svelte";
-	import Preference from "./Preference.svelte";
-  import Avatar from "$lib/components/Avatar.svelte";
-
-  let profile = {
-    avatarUrl: "",
-    firstName: "Amanda",
-  };
+	<script lang="ts">
+	  import { onMount } from "svelte";
+	  import Card from "$lib/components/Card.svelte";
+	  import Progress from "$lib/components/Progress.svelte";
+		import Preference from "./Preference.svelte";
+	  import Avatar from "$lib/components/Avatar.svelte";
+	
+	  let profile = {
+	    avatarUrl: "",
+	    firstName: "Amanda",
+	  };
 
   const { data, form } = $props();
 
@@ -58,12 +58,12 @@
       </div>
     </div>
 
-    <Card class="flex gap-6">
-     <Avatar
-       avatarUrl={profile.avatarUrl}
-       firstName={profile.firstName}
-    />
-    </Card>
+	    <Card class="flex gap-6">
+	     <Avatar
+	       avatarUrl={profile.avatarUrl}
+	       firstName={profile.firstName}
+	    />
+	    </Card>
 
     <form method="POST" action="?/updateName">
       <Card class="space-y-4 bg-white/80 backdrop-blur shadow-sm">
@@ -120,9 +120,8 @@
           </button>
         </div>
       </Card>
-    </form>
-
-    <form method="POST" action="?/create">
+	    </form>
+	    <form method="POST" action="?/create">
     <Card class="space-y-6 bg-white/80 backdrop-blur shadow-sm">
       <h2 class="text-xl font-semibold tracking-tighter">
         Roommate Preferences
