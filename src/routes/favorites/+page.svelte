@@ -39,10 +39,10 @@
               />
 
               <div class="space-y-1 p-6">
-                <h2 class="text-2xl font-semibold tracking-tight">{listing.address}</h2>
-                <p class="text-lg">
+                <h2 class="text-2xl font-semibold tracking-tight">
                   {listing.title}
-                </p>
+                </h2>
+                <p class="text-lg">{listing.address}</p>
                 <p class="text-sm text-zinc-600">
                   <span class="font-medium text-zinc-800">
                     {listing.distanceFromCampusMi} mi

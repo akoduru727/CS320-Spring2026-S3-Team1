@@ -1,5 +1,10 @@
 import { fail, redirect } from "@sveltejs/kit";
-import type { Actions } from "./$types";
+import type { Actions, PageServerLoad } from "./$types";
+
+const isMissingPreferencesTable = (message: string | undefined) => {
+  const lower = (message ?? "").toLowerCase();
+  return lower.includes("could not find the table") && lower.includes("preferences");
+};
 
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -13,6 +18,27 @@ const parseIntField = (formData: FormData, key: string, label: string) => {
   const parsed = Number.parseInt(raw, 10);
   if (Number.isNaN(parsed)) return { error: `Invalid ${label}.` };
   return { value: parsed } as const;
+};
+
+export const load: PageServerLoad = async ({ locals }) => {
+  if (!locals.user) return redirect(303, "/login");
+  if (locals.accountType !== "tenant") return redirect(303, "/");
+
+  const { data, error } = await locals.supabase
+    .from("preferences")
+    .select("organization, noise, cleanliness, sleep_schedule, pets, smoking, overnight_guests")
+    .eq("tenant", locals.user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+    const message = isMissingPreferencesTable(error.message)
+      ? "Preferences table is not set up yet."
+      : error.message;
+    return { preferences: null, message };
+  }
+
+  return { preferences: data ?? null, message: null };
 };
 
 export const actions: Actions = {
@@ -69,5 +95,7 @@ export const actions: Actions = {
       console.log(error)
       return fail(500, { message: `Unexpected error: ${error.message}.` });
     }
+
+    return redirect(303, "/profile");
   }
 }

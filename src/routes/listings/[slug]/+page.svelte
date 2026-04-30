@@ -1,12 +1,58 @@
 <script lang="ts">
   import Perk from "./Perk.svelte";
-  import { Check, X, Share, Star } from "@lucide/svelte";
+  import { Share, Star, Mail, ChevronLeft, ChevronRight } from "@lucide/svelte";
+  import { page } from "$app/state";
 
   const { data, form } = $props();    
   const listing = $derived(data.listing);
+  const listingImages = $derived(data.listingImages);
   const isFavorite = $derived(data.isFavorite);
+  const placeholderImage = "/listing-placeholder.png";
+  const hasImages = $derived(listingImages.length > 0);
+  const carouselImages = $derived(
+    hasImages
+      ? listingImages
+      : [{ id: "placeholder", url: placeholderImage, cover: true }],
+  );
 
   const pluralize = (word: string, count: number): string => `${count} ${word}${count === 1 ? "" : "s"}`;
+
+  let copied = $state(false);
+  let currentImageIndex = $state(0);
+
+  const selectImage = (index: number) => {
+    currentImageIndex = index;
+  };
+
+  const showPreviousImage = () => {
+    currentImageIndex = currentImageIndex === 0
+      ? carouselImages.length - 1
+      : currentImageIndex - 1;
+  };
+
+  const showNextImage = () => {
+    currentImageIndex = currentImageIndex === carouselImages.length - 1
+      ? 0
+      : currentImageIndex + 1;
+  };
+
+  const copyLink = async () => {
+    if (!navigator.clipboard) {
+      alert("Clipboard unsupported in this environment.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(page.url.href);
+      copied = true;
+      setTimeout(() => {
+        copied = false;
+      }, 3000);
+    } catch {
+      alert("Failed to copy URL to clipboard.");
+      return;
+    }
+  };
 </script>
 
 <div class="flex-1 overflow-y-auto">
@@ -20,11 +66,11 @@
       <h1 class="text-3xl font-medium tracking-tight">
         {listing.title}
       </h1>
-      <div class="flex gap-6">
+      <div class="flex gap-3">
         <form method="POST" action="?/toggleFavorite">
           <button
             type="submit"
-            class="flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100 hover:text-zinc-700 transition-colors"
+            class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium bg-zinc-100 hover:bg-zinc-50 border border-zinc-300 transition-colors"
             aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
             title={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
@@ -32,19 +78,64 @@
             <span>{isFavorite ? "Unfavorite" : "Favorite"}</span>
           </button>
         </form>
+        <button 
+          onclick={copyLink}
+          disabled={copied}
+          class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium bg-zinc-100 hover:bg-zinc-50 transition-colors border border-zinc-300 disabled:opacity-50"
+        >
+          <Share size={16} />
+          <span>{copied ? "Copied!" : "Share"}</span>
+        </button>
         <!-- TODO: make this do something -->
-        <button class="hover:text-zinc-700 transition-colors">
-          <Share />
+        <button 
+          class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium bg-zinc-100 hover:bg-zinc-50 transition-colors border border-zinc-300"
+        >
+          <Mail size={16} />
+          <span>Contact</span>
         </button>
       </div>
     </div>
-    <!-- TODO: pull these images from supabase bucket, decide on layout -->
-    <div class="grid grid-cols-4 gap-4 *:bg-zinc-300 *:aspect-4/3 *:rounded-lg">
-      <div class="col-span-2 row-span-2" />
-      <div />
-      <div />
-      <div />
-      <div />
+    <div class="space-y-4">
+      <div class="relative overflow-hidden rounded-lg bg-zinc-200">
+        <img
+          src={carouselImages[currentImageIndex].url}
+          alt={listing.title}
+          class="aspect-[16/9] w-full {hasImages ? 'object-cover' : 'object-contain p-16'}"
+        />
+
+        {#if carouselImages.length > 1}
+          <button
+            type="button"
+            onclick={showPreviousImage}
+            class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-zinc-900 shadow-sm transition-colors hover:bg-white"
+            aria-label="Previous image"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            type="button"
+            onclick={showNextImage}
+            class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-zinc-900 shadow-sm transition-colors hover:bg-white"
+            aria-label="Next image"
+          >
+            <ChevronRight size={20} />
+          </button>
+        {/if}
+      </div>
+
+      {#if carouselImages.length > 1}
+        <div class="flex justify-center gap-2">
+          {#each carouselImages as _, index}
+            <button
+              type="button"
+              onclick={() => selectImage(index)}
+              class="h-2.5 w-2.5 rounded-full transition-colors {index === currentImageIndex ? 'bg-red-800' : 'bg-zinc-300 hover:bg-zinc-400'}"
+              aria-label={"Show image " + (index + 1)}
+            >
+            </button>
+          {/each}
+        </div>
+      {/if}
     </div>
     <div class="flex justify-between">
       <div>
@@ -71,11 +162,11 @@
       </div>
     </div>
 
-    <!-- TODO: make this do something -->
-    <button
-      class="rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-1.5 font-medium text-zinc-100"
+    <a
+      href={`/application-portal?listing_id=${listing.id}`}
+      class="inline-flex rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-1.5 font-medium text-zinc-100"
     >
       Apply
-    </button>
+    </a>
   </div>
 </div>

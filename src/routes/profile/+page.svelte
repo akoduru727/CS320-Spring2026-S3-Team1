@@ -10,13 +10,17 @@
     firstName: 'Amanda'
   }
 
-  let organization = 0;
-  let cleanliness = 0;
-  let noise = 0;
-  let sleep = "";
-  let pets = false;
-  let smoking = false;
-  let overnight = false;
+  const { data, form } = $props();
+
+  const hasSavedPreferences = $derived(Boolean(data.preferences));
+
+  let organization = $state(data.preferences?.organization ?? 0);
+  let cleanliness = $state(data.preferences?.cleanliness ?? 0);
+  let noise = $state(data.preferences?.noise ?? 0);
+  let sleep = $state(data.preferences?.sleep_schedule ?? "flexible");
+  let pets = $state(Boolean(data.preferences?.pets));
+  let smoking = $state(Boolean(data.preferences?.smoking));
+  let overnight = $state(Boolean(data.preferences?.overnight_guests));
 </script>
 
 <div class="flex-1 overflow-y-auto">
@@ -52,6 +56,18 @@
       <h2 class="text-xl font-semibold tracking-tighter">
         Roommate Preferences
       </h2>
+
+      {#if data.message || form?.message}
+        <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {form?.message || data.message}
+        </div>
+      {/if}
+
+      {#if hasSavedPreferences}
+        <div class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-900">
+          Preferences saved. Update anything below and resubmit to change them.
+        </div>
+      {/if}
 
       <div class="space-y-3">
         <Preference
@@ -118,7 +134,7 @@
       </Preference>
       <div class="flex justify-center">
         <button type="submit" class="bg-red-800 hover:bg-red-700 cursor-pointer transition-colors text-zinc-100 text-sm font-medium px-4 py-2 rounded ">
-            Submit Preferences
+            {hasSavedPreferences ? "Update Preferences" : "Submit Preferences"}
         </button>
       </div>
     </Card>
