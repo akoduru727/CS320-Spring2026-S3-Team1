@@ -3,11 +3,6 @@
 
   const { data, form } = $props();
 
-  const tenantListings = $derived(data.mode === "tenant" ? (data.listings ?? []) : []);
-  let selectedListingId = $state(data.mode === "tenant" ? (data.selectedListingId ?? "") : "");
-  let showNewApplication = $state(false);
-  if (selectedListingId) showNewApplication = true;
-
   const formatDate = (iso: string | null) => {
     if (!iso) return "Unknown date";
     const d = new Date(iso);
@@ -29,11 +24,6 @@
     if (step === "rejected") return "bg-red-600/20 text-red-900";
     return "bg-zinc-900 text-zinc-100";
   };
-
-  const listingLabelById = $derived(
-    new Map<string, string>(tenantListings.map((l: { id: string; label: string }) => [l.id, l.label]))
-  );
-  const selectedListingLabel = $derived(selectedListingId ? listingLabelById.get(selectedListingId) ?? null : null);
 </script>
 
 <div class="flex-1 overflow-y-auto">
@@ -41,7 +31,7 @@
     <div>
       <h1 class="text-3xl font-semibold tracking-tighter">Application Portal</h1>
       {#if data.mode === "tenant"}
-        <p class="text-zinc-600">Submit rental applications and track their status.</p>
+        <p class="text-zinc-600">Track your rental applications and their status.</p>
       {:else}
         <p class="text-zinc-600">Review tenant applications for your listings.</p>
       {/if}
@@ -60,22 +50,20 @@
             <h2 class="text-xl font-semibold tracking-tight">Your applications</h2>
             <p class="text-sm text-zinc-600">Track application status changes here.</p>
           </div>
-          <button
-            type="button"
-            class="rounded-md border border-zinc-300 bg-zinc-100 hover:bg-zinc-200 transition-colors px-3 py-1.5 text-sm font-medium"
-            onclick={() => (showNewApplication = !showNewApplication)}
-            disabled={!data.dbReady}
-          >
-            {showNewApplication ? "Hide form" : "New application"}
-          </button>
         </div>
 
         {#if !data.dbReady}
           <p class="text-sm text-zinc-600">
             Application tracking is unavailable until the applications table exists.
           </p>
+          <p class="text-sm text-zinc-600">
+            To apply, open a listing from <a class="text-red-800 hover:text-red-700 underline" href="/search">Search</a>.
+          </p>
         {:else if data.applications.length === 0}
           <p class="text-sm text-zinc-600">You have not submitted any applications yet.</p>
+          <p class="text-sm text-zinc-600">
+            To apply, open a listing from <a class="text-red-800 hover:text-red-700 underline" href="/search">Search</a>.
+          </p>
         {:else}
           <div class="space-y-3">
             {#each data.applications as app (app.id)}
@@ -106,65 +94,6 @@
           </div>
         {/if}
       </Card>
-
-      {#if showNewApplication}
-        <Card class="space-y-4">
-          <h2 class="text-xl font-semibold tracking-tight">New application</h2>
-
-          <form method="POST" action="?/submit" class="space-y-4">
-            {#if selectedListingLabel}
-              <div class="space-y-1">
-                <p class="text-sm font-medium text-zinc-700">Listing</p>
-                <p class="rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm">
-                  {selectedListingLabel}
-                </p>
-                <input type="hidden" name="listing_id" value={selectedListingId} />
-              </div>
-            {:else}
-              <label class="block">
-                <p class="text-sm font-medium text-zinc-700">Listing</p>
-                <select
-                  bind:value={selectedListingId}
-                  name="listing_id"
-                  class="mt-1 w-full rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm"
-                  required
-                  disabled={!data.dbReady}
-                >
-                  <option value="" selected disabled>Select a listing…</option>
-                  {#each tenantListings as listing (listing.id)}
-                    <option value={listing.id}>{listing.label}</option>
-                  {/each}
-                </select>
-              </label>
-            {/if}
-
-            <label class="block">
-              <p class="text-sm font-medium text-zinc-700">Message (optional)</p>
-              <textarea
-                name="message"
-                rows={4}
-                class="mt-1 w-full rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm"
-                placeholder="Introduce yourself and include anything the landlord should know."
-                disabled={!data.dbReady}
-              ></textarea>
-            </label>
-
-            <div class="flex justify-end">
-              <button
-                type="submit"
-                class="rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-2 text-sm font-medium text-zinc-100"
-                disabled={!data.dbReady || tenantListings.length === 0 || !selectedListingId}
-              >
-                Submit application
-              </button>
-            </div>
-          </form>
-
-          {#if tenantListings.length === 0}
-            <p class="text-sm text-zinc-600">No listings available to apply to yet.</p>
-          {/if}
-        </Card>
-      {/if}
     {:else}
       <Card class="space-y-4">
         <h2 class="text-xl font-semibold tracking-tight">Incoming applications</h2>

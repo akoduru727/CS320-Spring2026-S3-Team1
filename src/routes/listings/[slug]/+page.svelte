@@ -162,11 +162,13 @@
       </div>
     </div>
 
-    <a
-      href={`/application-portal?listing_id=${listing.id}`}
-      class="inline-flex rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-1.5 font-medium text-zinc-100"
-    >
-      Apply
-    </a>
+    <form method="POST" action="?/apply" class="inline-flex">
+      <button
+        type="submit"
+        class="inline-flex rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-1.5 font-medium text-zinc-100"
+      >
+        Apply
+      </button>
+    </form>
   </div>
 </div>

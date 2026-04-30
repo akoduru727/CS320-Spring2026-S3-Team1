@@ -3,11 +3,6 @@ import type { Actions, PageServerLoad } from "./$types";
 
 type ApplicationStatus = "pending" | "approved" | "rejected";
 
-type ListingOption = {
-  id: string;
-  label: string;
-};
-
 type TenantApplication = {
   id: string;
   listingId: string;
@@ -39,6 +34,7 @@ const listingLabel = (row: { address: string | null; title: string | null }) => 
   return title ? `${address} — ${title}` : address;
 };
 
+
 export const load: PageServerLoad = async ({ locals, url }) => {
   if (!locals.user) return redirect(303, "/login");
   if (locals.accountType !== "tenant" && locals.accountType !== "landlord") {
@@ -46,18 +42,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   }
 
   if (locals.accountType === "tenant") {
-    const requestedListingId = url.searchParams.get("listing_id")?.trim() || null;
-    const { data: listingRows, error: listingError } = await locals.supabase
-      .from("listings")
-      .select("id, address, title");
-
-    const listings: ListingOption[] = (listingRows ?? [])
-      .map((row) => ({
-        id: row.id as string,
-        label: listingLabel({ address: row.address as string | null, title: row.title as string | null }),
-      }))
-      .filter((row) => typeof row.id === "string" && row.id.length > 0);
-
     const { data: applicationRows, error: applicationError } = await locals.supabase
       .from("applications")
       .select("id, listing, status, message, created_at")
@@ -65,11 +49,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       .order("created_at", { ascending: false });
 
     const dbReady = !isMissingApplicationsTable(applicationError?.message);
-    const message = listingError?.message
-      ? listingError.message
-      : !dbReady
-        ? "Applications table is not set up yet. Run `scripts/supabase-applications.sql` in Supabase SQL editor."
-        : applicationError?.message || null;
+    const message = !dbReady
+      ? "Applications table is not set up yet. Run `scripts/supabase-applications.sql` in Supabase SQL editor."
+      : applicationError?.message || null;
     const rows = (applicationRows ?? []) as Array<{
       id: string;
       listing: string;
@@ -102,10 +84,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       createdAt: row.created_at,
     })) : [];
 
-    const selectedListingId =
-      requestedListingId && listings.some((l) => l.id === requestedListingId) ? requestedListingId : null;
-
-    return { mode: "tenant" as const, listings, applications, message, selectedListingId, dbReady };
+    return { mode: "tenant" as const, applications, message, dbReady };
   }
 
   const { data: applicationRows, error: applicationError } = await locals.supabase
@@ -175,51 +154,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
-  submit: async ({ locals, request }) => {
-    if (!locals.user) return redirect(303, "/login");
-    if (locals.accountType !== "tenant") return fail(403, { message: "Only tenants can submit applications." });
-
-    const formData = await request.formData();
-    const listingId = getString(formData, "listing_id");
-    const message = getString(formData, "message") || null;
-
-    if (!listingId) return fail(400, { message: "Please select a listing." });
-
-    const { data: listingRow, error: listingError } = await locals.supabase
-      .from("listings")
-      .select("id, landlord")
-      .eq("id", listingId)
-      .single();
-
-    if (listingError || !listingRow) {
-      console.error(listingError);
-      return fail(404, { message: "Listing not found." });
-    }
-
-    const landlordId = listingRow.landlord as string | null;
-    if (!landlordId) return fail(500, { message: "Listing is missing landlord information." });
-
-    const { error: insertError } = await locals.supabase.from("applications").insert({
-      listing: listingId,
-      tenant: locals.user.id,
-      landlord: landlordId,
-      status: "pending" satisfies ApplicationStatus,
-      message,
-    });
-
-    if (insertError) {
-      console.error(insertError);
-      if (isMissingApplicationsTable(insertError.message)) {
-        return fail(500, {
-          message: "Applications table is not set up yet. Run `scripts/supabase-applications.sql` in Supabase SQL editor.",
-        });
-      }
-      return fail(500, { message: insertError.message });
-    }
-
-    return redirect(303, "/application-portal");
-  },
-
   setStatus: async ({ locals, request }) => {
     if (!locals.user) return redirect(303, "/login");
     if (locals.accountType !== "landlord") return fail(403, { message: "Only landlords can update application status." });
