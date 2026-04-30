@@ -12,14 +12,24 @@ test.beforeEach(async ({ page }) => {
       url: 'http://127.0.0.1:4174',
     },
   ]);
+
+  await page.goto('/profile'); 
 });
 
 test('tenant can load profile page', async ({ page }) => {
-  await page.goto('/profile');
   await expect(page.getByRole('heading', { name: /profile/i })).toBeVisible();
 });
 
 test('tenant sees roommate preferences section', async ({ page }) => {
-  await page.goto('/profile');
   await expect(page.getByRole('heading', { name: /roommate preferences/i })).toBeVisible();
+});
+
+test('navbar for search works correctly', async({ page }) => {
+  await page.getByRole('link', { name: /search/i }).first().click();
+  await expect(page).toHaveURL(/search/);
+});
+
+test('navbar for favorites works correctly', async({ page }) => {
+  await page.getByRole('link', { name: /favorites/i }).first().click();
+  await expect(page).toHaveURL(/favorites/);
 });

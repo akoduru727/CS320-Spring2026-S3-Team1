@@ -25,7 +25,7 @@
           </h2>
 
           <a 
-            href="/post-listing" 
+            href="/create-listing" 
             class="bg-red-800 hover:bg-red-700 transition-colors text-zinc-100 text-sm font-medium px-3 py-2 flex items-center gap-2 rounded"
           >
             Post listing
