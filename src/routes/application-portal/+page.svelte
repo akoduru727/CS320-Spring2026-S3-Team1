@@ -2,6 +2,7 @@
   import Card from "$lib/components/Card.svelte";
 
   const { data, form } = $props();
+  const selectedListing = $derived(data.mode === "tenant" ? (data.selectedListing ?? null) : null);
 
   const formatDate = (iso: string | null) => {
     if (!iso) return "Unknown date";
@@ -94,6 +95,43 @@
           </div>
         {/if}
       </Card>
+
+      {#if selectedListing}
+        <Card class="space-y-4">
+          <h2 class="text-xl font-semibold tracking-tight">New application</h2>
+
+          <form method="POST" action="?/submit" class="space-y-4">
+            <div class="space-y-1">
+              <p class="text-sm font-medium text-zinc-700">Listing</p>
+              <p class="rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm">
+                {selectedListing.label}
+              </p>
+              <input type="hidden" name="listing_id" value={selectedListing.id} />
+            </div>
+
+            <label class="block">
+              <p class="text-sm font-medium text-zinc-700">Message (optional)</p>
+              <textarea
+                name="message"
+                rows={4}
+                class="mt-1 w-full rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm"
+                placeholder="Introduce yourself and include anything the landlord should know."
+                disabled={!data.dbReady}
+              ></textarea>
+            </label>
+
+            <div class="flex justify-end">
+              <button
+                type="submit"
+                class="rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-2 text-sm font-medium text-zinc-100"
+                disabled={!data.dbReady}
+              >
+                Submit application
+              </button>
+            </div>
+          </form>
+        </Card>
+      {/if}
     {:else}
       <Card class="space-y-4">
         <h2 class="text-xl font-semibold tracking-tight">Incoming applications</h2>

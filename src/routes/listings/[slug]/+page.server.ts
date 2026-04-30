@@ -3,11 +3,6 @@ import { fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 import { getListingImages, type ListingImage } from "$lib/server/listing-images";
 
-const isMissingApplicationsTable = (message: string | undefined) => {
-  const lower = (message ?? "").toLowerCase();
-  return lower.includes("could not find the table") && lower.includes("applications");
-};
-
 export const load: PageServerLoad = async ({ locals, params }) => {
   if (locals.accountType !== "tenant") return redirect(303, "/");
   if (!locals.user) return redirect(303, "/login");
@@ -44,45 +39,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 };
 
 export const actions: Actions = {
-  apply: async ({ locals, params }) => {
-    if (locals.accountType !== "tenant") return redirect(303, "/");
-    if (!locals.user) return redirect(303, "/login");
-
-    const listingId = params.slug;
-    const { data: listingRow, error: listingError } = await locals.supabase
-      .from("listings")
-      .select("id, landlord")
-      .eq("id", listingId)
-      .single();
-
-    if (listingError || !listingRow) {
-      console.error(listingError);
-      return fail(404, { message: "Listing not found." });
-    }
-
-    const landlordId = listingRow.landlord as string | null;
-    if (!landlordId) return fail(500, { message: "Listing is missing landlord information." });
-
-    const { error: insertError } = await locals.supabase.from("applications").insert({
-      listing: listingId,
-      tenant: locals.user.id,
-      landlord: landlordId,
-      status: "pending",
-      message: null,
-    });
-
-    if (insertError) {
-      console.error(insertError);
-      if (isMissingApplicationsTable(insertError.message)) {
-        return fail(500, {
-          message: "Applications table is not set up yet. Run `scripts/supabase-applications.sql` in Supabase SQL editor.",
-        });
-      }
-      return fail(500, { message: insertError.message });
-    }
-
-    return redirect(303, "/application-portal");
-  },
   toggleFavorite: async ({ locals, params, url }) => {
     if (locals.accountType !== "tenant") return redirect(303, "/");
     if (!locals.user) return redirect(303, "/login");

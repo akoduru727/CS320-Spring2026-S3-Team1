@@ -42,6 +42,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   }
 
   if (locals.accountType === "tenant") {
+    const requestedListingId = url.searchParams.get("listing_id")?.trim() || null;
+
     const { data: applicationRows, error: applicationError } = await locals.supabase
       .from("applications")
       .select("id, listing, status, message, created_at")
@@ -84,7 +86,29 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       createdAt: row.created_at,
     })) : [];
 
-    return { mode: "tenant" as const, applications, message, dbReady };
+    let selectedListing: { id: string; label: string } | null = null;
+
+    if (requestedListingId) {
+      const { data: selectedListingRow, error: selectedListingError } = await locals.supabase
+        .from("listings")
+        .select("id, address, title")
+        .eq("id", requestedListingId)
+        .single();
+
+      if (selectedListingError) {
+        console.error(selectedListingError);
+      } else if (selectedListingRow?.id) {
+        selectedListing = {
+          id: selectedListingRow.id as string,
+          label: listingLabel({
+            address: selectedListingRow.address as string | null,
+            title: selectedListingRow.title as string | null,
+          }),
+        };
+      }
+    }
+
+    return { mode: "tenant" as const, applications, message, dbReady, selectedListing };
   }
 
   const { data: applicationRows, error: applicationError } = await locals.supabase
@@ -154,6 +178,50 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
+  submit: async ({ locals, request }) => {
+    if (!locals.user) return redirect(303, "/login");
+    if (locals.accountType !== "tenant") return fail(403, { message: "Only tenants can submit applications." });
+
+    const formData = await request.formData();
+    const listingId = getString(formData, "listing_id");
+    const message = getString(formData, "message") || null;
+
+    if (!listingId) return fail(400, { message: "Missing listing id." });
+
+    const { data: listingRow, error: listingError } = await locals.supabase
+      .from("listings")
+      .select("id, landlord")
+      .eq("id", listingId)
+      .single();
+
+    if (listingError || !listingRow) {
+      console.error(listingError);
+      return fail(404, { message: "Listing not found." });
+    }
+
+    const landlordId = listingRow.landlord as string | null;
+    if (!landlordId) return fail(500, { message: "Listing is missing landlord information." });
+
+    const { error: insertError } = await locals.supabase.from("applications").insert({
+      listing: listingId,
+      tenant: locals.user.id,
+      landlord: landlordId,
+      status: "pending" satisfies ApplicationStatus,
+      message,
+    });
+
+    if (insertError) {
+      console.error(insertError);
+      if (isMissingApplicationsTable(insertError.message)) {
+        return fail(500, {
+          message: "Applications table is not set up yet. Run `scripts/supabase-applications.sql` in Supabase SQL editor.",
+        });
+      }
+      return fail(500, { message: insertError.message });
+    }
+
+    return redirect(303, "/application-portal");
+  },
   setStatus: async ({ locals, request }) => {
     if (!locals.user) return redirect(303, "/login");
     if (locals.accountType !== "landlord") return fail(403, { message: "Only landlords can update application status." });
