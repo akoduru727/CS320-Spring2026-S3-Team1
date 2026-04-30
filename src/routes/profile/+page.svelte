@@ -3,6 +3,12 @@
   import Card from "$lib/components/Card.svelte";
   import Progress from "$lib/components/Progress.svelte";
 	import Preference from "./Preference.svelte";
+  import Avatar from "$lib/components/Avatar.svelte";
+
+  let profile = {
+    avatarUrl: "",
+    firstName: "Amanda",
+  };
 
   const { data, form } = $props();
 
@@ -11,14 +17,25 @@
   const showNameSaved = $derived(data.saved === "name");
   const showPreferencesSaved = $derived(data.saved === "preferences");
 
-  let organization = $state(data.preferences?.organization ?? 0);
-  let cleanliness = $state(data.preferences?.cleanliness ?? 0);
-  let noise = $state(data.preferences?.noise ?? 0);
-  let sleep = $state(data.preferences?.sleep_schedule ?? "flexible");
-  let pets = $state(Boolean(data.preferences?.pets));
-  let smoking = $state(Boolean(data.preferences?.smoking));
-  let overnight = $state(Boolean(data.preferences?.overnight_guests));
-  let name = $state(data.tenantName ?? "");
+  let organization = $state(0);
+  let cleanliness = $state(0);
+  let noise = $state(0);
+  let sleep = $state("flexible");
+  let pets = $state(false);
+  let smoking = $state(false);
+  let overnight = $state(false);
+  let name = $state("");
+
+  $effect(() => {
+    organization = data.preferences?.organization ?? 0;
+    cleanliness = data.preferences?.cleanliness ?? 0;
+    noise = data.preferences?.noise ?? 0;
+    sleep = data.preferences?.sleep_schedule ?? "flexible";
+    pets = Boolean(data.preferences?.pets);
+    smoking = Boolean(data.preferences?.smoking);
+    overnight = Boolean(data.preferences?.overnight_guests);
+    name = data.tenantName ?? "";
+  });
 
   onMount(() => {
     const url = new URL(window.location.href);
@@ -40,6 +57,13 @@
         </p>
       </div>
     </div>
+
+    <Card class="flex gap-6">
+     <Avatar
+       avatarUrl={profile.avatarUrl}
+       firstName={profile.firstName}
+    />
+    </Card>
 
     <form method="POST" action="?/updateName">
       <Card class="space-y-4 bg-white/80 backdrop-blur shadow-sm">
