@@ -178,6 +178,32 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
+  delete: async ({ locals, request }) => {
+    if (!locals.user) return redirect(303, "/login");
+    if (locals.accountType !== "tenant") return fail(403, { message: "Only tenants can delete applications." });
+
+    const formData = await request.formData();
+    const applicationId = getString(formData, "application_id");
+    if (!applicationId) return fail(400, { message: "Missing application id." });
+
+    const { error: deleteError } = await locals.supabase
+      .from("applications")
+      .delete()
+      .eq("id", applicationId)
+      .eq("tenant", locals.user.id);
+
+    if (deleteError) {
+      console.error(deleteError);
+      if (isMissingApplicationsTable(deleteError.message)) {
+        return fail(500, {
+          message: "Applications table is not set up yet. Run `scripts/supabase-applications.sql` in Supabase SQL editor.",
+        });
+      }
+      return fail(500, { message: deleteError.message });
+    }
+
+    return redirect(303, "/application-portal");
+  },
   submit: async ({ locals, request }) => {
     if (!locals.user) return redirect(303, "/login");
     if (locals.accountType !== "tenant") return fail(403, { message: "Only tenants can submit applications." });
