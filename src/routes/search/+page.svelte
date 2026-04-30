@@ -118,7 +118,8 @@
                   </p>
                   <p class="text-sm text-zinc-600">
                     <span class="font-medium text-zinc-800">
-                      {listing.distance_from_campus_mi} mi
+                      <!-- round to one decimal point -->
+                      {Math.round((listing.distance_from_campus_mi ?? 0) * 10) / 10} mi
                     </span>
                     from campus
                   </p>
