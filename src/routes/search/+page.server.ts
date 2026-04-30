@@ -1,6 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 import { fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
+import { getCoverImageUrlsByListingId } from "$lib/server/listing-images";
 
 export type Listing = {
   id: string;
@@ -9,10 +10,8 @@ export type Listing = {
   beds: number | null;
   address: string | null;
   img: string | null;
-  distanceFromCampusMi: number | null;
+  distance_from_campus_mi: number | null;
 };
-
-const COVER_TAG = "cover picture";
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (locals.accountType !== "tenant") return redirect(303, "/");
@@ -29,7 +28,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const { data: listingRows, error: listingError } = await locals.supabase
     .from("listings")
-    .select("id, title, baths, beds, address, distanceFromCampusMi");
+    .select("id, title, baths, beds, address, distance_from_campus_mi");
   if (listingError) {
     console.error(listingError);
     return { listings: [] as Listing[], favoriteIds, message };
@@ -38,26 +37,12 @@ export const load: PageServerLoad = async ({ locals }) => {
   const listingsObj = listingRows ?? [];
   const listingIds = listingsObj.map((listingElem) => listingElem.id).filter((id): id is string => id != null);
 
-  const coverUrlByListingId = new Map<string, string>();
+  let coverUrlByListingId = new Map<string, string>();
 
-  if(listingIds.length > 0){
-    const {data: imageRows, error: imagesError} = await locals.supabase
-      .from("images")
-      .select("listing, url, tag")
-      .eq("tag", COVER_TAG)
-      .in("listing", listingIds);
-
-    if(imagesError){
-      console.error(imagesError);
-    } 
-    else {
-      for (const img of imageRows ?? []) {
-        const imgListingId = img.listing as string | null;
-        if (imgListingId != null && !coverUrlByListingId.has(imgListingId)) {
-          coverUrlByListingId.set(imgListingId, img.url as string);
-        }
-      }
-    }
+  try {
+    coverUrlByListingId = await getCoverImageUrlsByListingId(locals.supabase, listingIds);
+  } catch (imagesError) {
+    console.error(imagesError);
   }
 
   const listings: Listing[] = listingsObj.map((row) => ({
@@ -67,7 +52,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     beds: row.beds,
     address: row.address,
     img: coverUrlByListingId.get(row.id) ?? null,
-    distanceFromCampusMi: row.distanceFromCampusMi ?? null //need to figure this out later how we calculate distance
+    distance_from_campus_mi: row.distance_from_campus_mi ?? null //need to figure this out later how we calculate distance
   }));
   return { listings, favoriteIds, message };
 };

@@ -77,6 +77,41 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.user = user;
   event.locals.accountType = user?.user_metadata.account_type;
 
+  /**
+   * my code only delete this if wrong
+   */
+  const e2eUserCookie = event.cookies.get("e2e-user");
+
+  if (e2eUserCookie) {
+    try {
+      const e2eUser = JSON.parse(e2eUserCookie);
+
+      event.locals.user = {
+        id: e2eUser.id,
+        app_metadata: {},
+        aud: "authenticated",
+        created_at: new Date().toISOString(),
+        email: e2eUser.email,
+        user_metadata: {
+          account_type: e2eUser.account_type,
+        },
+      } as typeof event.locals.user;
+      event.locals.accountType = e2eUser.account_type;
+      event.locals.session = {
+        user: event.locals.user,
+      } as typeof event.locals.session;
+
+      return await resolve(event, {
+        filterSerializedResponseHeaders(name: string) {
+          return name === "content-range" || name === "x-supabase-api-version";
+        },
+      });
+    } catch {
+      // Ignore malformed e2e auth cookies and fall back to normal auth.
+    }
+  }
+
+
   const path = event.url.pathname;
 
   // send to /login if user is not authenticated

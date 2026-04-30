@@ -26,6 +26,14 @@ const parseFloatField = (formData: FormData, key: string, label: string) => {
   return { value: parsed };
 };
 
+const getFileExtension = (file: File) => {
+  const nameParts = file.name.split(".");
+  if (nameParts.length > 1) 
+    return nameParts.at(-1)?.toLowerCase() ?? "bin";
+  const mimeSubtype = file.type.split("/").at(-1)?.toLowerCase();
+  return mimeSubtype || "bin";
+};
+
 export const actions: Actions = {
   create: async ({ request, locals }) => {
     const user = locals.user;
@@ -44,7 +52,6 @@ export const actions: Actions = {
     if (!address || !city || !title) {
       return fail(400, { message: "Please fill in address, city, and title." });
     }
-
 
     const priceResult = parseIntField(formData, "price", "monthly rent");
     if ("error" in priceResult) return fail(400, { message: priceResult.error });
@@ -76,15 +83,21 @@ export const actions: Actions = {
     const geoLocJson = (await geoLocObj.json())[0];
     const geoCoords = { latitude: geoLocJson.lat, longitude: geoLocJson.lon };
 
-    const distanceFromCampus = (getDistance(UMASS_COORDS, geoCoords) / 1.609);
+    const distanceFromCampus = (getDistance(UMASS_COORDS, geoCoords) / 1609);
 
     const availableFrom = getString(formData, "available_from") || null;
     const availableTo = getString(formData, "available_to") || null;
     const description = getString(formData, "description") || null;
+
+    const imageFiles = formData
+      .getAll("images")
+      .filter((value): value is File => value instanceof File && value.size > 0);
+
     const applicationType = getString(formData, "application_type");
     if (!applicationType) {
       return fail(400, { message: "Please select an application method." });
     }
+
     let contactEmail: string | null = null;
     let contactPhone: string | null = null;
     let pdfUrl: string | null = null;
@@ -120,6 +133,33 @@ export const actions: Actions = {
       pdfUrl = publicUrlData.publicUrl;
     }
 
+    const uploadedImages: Array<{ url: string; storage_path: string; cover: boolean }> = [];
+
+    for (const [index, file] of imageFiles.entries()) {
+      const extension = getFileExtension(file);
+      const fileName = `${user.id}/${Date.now()}-${index}.${extension}`;
+      const { error: uploadError } = await locals.supabase.storage
+        .from("listing_images")
+        .upload(fileName, file, {
+          contentType: file.type || undefined,
+        });
+
+      if (uploadError) {
+        console.log("LISTING IMAGE UPLOAD ERROR:", uploadError);
+        return fail(500, { message: `Unexpected error: ${uploadError.message}.` });
+      }
+
+      const { data: publicUrlData } = locals.supabase.storage
+        .from("listing_images")
+        .getPublicUrl(fileName);
+
+      uploadedImages.push({
+        url: publicUrlData.publicUrl,
+        storage_path: fileName,
+        cover: index === 0,
+      });
+    }
+
     const payload = {
       landlord: user.id,
       address,
@@ -137,7 +177,7 @@ export const actions: Actions = {
       title,
       description,
       status: "Vacant",
-      distanceFromCampusMi: distanceFromCampus,
+      distance_from_campus_mi: distanceFromCampus,
 
       application_type: applicationType,
       contact_email: contactEmail,
@@ -145,10 +185,29 @@ export const actions: Actions = {
       application_pdf_url: pdfUrl,
     };
 
-    const { error } = await locals.supabase.from("listings").insert(payload);
+    const { data: listing, error } = await locals.supabase
+      .from("listings")
+      .insert(payload)
+      .select("id")
+      .single();
 
     if (error) {
       return fail(500, { message: `Unexpected error: ${error.message}.` });
+    }
+
+    if (uploadedImages.length > 0) {
+      const imageRows = uploadedImages.map((image) => ({
+        listing: listing.id,
+        url: image.url,
+        storage_path: image.storage_path,
+        cover: image.cover,
+      }));
+
+      const { error: imagesError } = await locals.supabase.from("images").insert(imageRows);
+
+      if (imagesError) {
+        return fail(500, { message: `Unexpected error: ${imagesError.message}.` });
+      }
     }
 
     return redirect(303, "/dashboard");

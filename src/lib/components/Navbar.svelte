@@ -13,17 +13,18 @@
 
   let routes: Route[] = $derived(
     accountType === "tenant" ? [
+      { name: "Search", href: "/search" },
       { name: "Profile", href: "/profile" },
       { name: "Connect", href: "/" },
       { name: "Chats", href: "/renter-chatroom" },
       { name: "Favorites", href: "/favorites" },
       { name: "History", href: "/" },
       { name: "About", href: "/" },
-      { name: "Application Portal", href: "/renter-landing" },
+      { name: "Application Portal", href: "/application-portal" },
     ] : accountType === "landlord" ? [
       { name: "Dashboard", href: "/dashboard" },
-      { name: "Post Listing", href: "/post-listing" },
-      { name: "Application Portal", href: "/" },
+      { name: "Create Listing", href: "/create-listing" },
+      { name: "Application Portal", href: "/application-portal" },
       { name: "Chats", href: "/landlord-chatroom" },
       { name: "About", href: "/" },
     ] : []
