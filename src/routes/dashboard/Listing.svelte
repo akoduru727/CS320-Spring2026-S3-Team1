@@ -7,9 +7,11 @@
     id: string;
 		name: string;
 		address: string;
+    imageSrc: string;
+    isPlaceholder: boolean;
 	};
 
-	const { id, name, address }: Props = $props();
+	const { id, name, address, imageSrc, isPlaceholder }: Props = $props();
 
   const deleteListing = async () => {
     const ok = confirm(`Are you sure you'd like to delete ${name}?`);
@@ -27,7 +29,13 @@
 
 <Card class="flex justify-between">
   <div class="flex items-center gap-6">
-    <div class="h-20 w-20 bg-zinc-300"></div>
+    <img
+      src={imageSrc}
+      alt={address}
+      class="h-20 w-20 rounded-md {isPlaceholder
+        ? 'bg-zinc-200 object-contain p-3'
+        : 'object-cover'}"
+    />
 
     <div>
       <p class="text-lg font-medium">

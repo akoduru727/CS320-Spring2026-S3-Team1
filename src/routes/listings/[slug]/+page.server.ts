@@ -1,6 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 import { fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
+import { getListingImages } from "$lib/server/listing-images";
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   if (locals.accountType !== "tenant") return redirect(303, "/");
@@ -22,7 +23,19 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   if (tenantError) console.error(tenantError);
   const favoriteIds = (tenantRow?.favorite_houses ?? []) as string[];
 
-  return { listing: data, isFavorite: favoriteIds.includes(params.slug) };
+  let listingImages = [];
+
+  try {
+    listingImages = await getListingImages(locals.supabase, params.slug);
+  } catch (imagesError) {
+    console.error(imagesError);
+  }
+
+  return {
+    listing: data,
+    listingImages,
+    isFavorite: favoriteIds.includes(params.slug),
+  };
 };
 
 export const actions: Actions = {

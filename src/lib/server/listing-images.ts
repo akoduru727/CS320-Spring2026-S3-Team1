@@ -1,5 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export type ListingImage = {
+  id: string;
+  listing: string;
+  url: string;
+  storage_path: string;
+  upload_time: string;
+  cover: boolean;
+};
+
 export async function getCoverImageUrlsByListingId(
   supabase: SupabaseClient,
   listingIds: string[],
@@ -31,4 +40,26 @@ export async function getCoverImageUrlsByListingId(
   }
 
   return coverUrlByListingId;
+}
+
+export async function getListingImages(
+  supabase: SupabaseClient,
+  listingId: string,
+) {
+  if (!listingId.trim()) {
+    return [] as ListingImage[];
+  }
+
+  const { data: imageRows, error } = await supabase
+    .from("images")
+    .select("id, listing, url, storage_path, upload_time, cover")
+    .eq("listing", listingId)
+    .order("cover", { ascending: false })
+    .order("upload_time", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (imageRows ?? []) as ListingImage[];
 }

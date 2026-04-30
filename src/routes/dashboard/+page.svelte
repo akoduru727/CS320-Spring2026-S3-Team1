@@ -41,6 +41,8 @@
               id={listing.id}
               name={listing.title}
               address={listing.address}
+              imageSrc={listing.imageSrc}
+              isPlaceholder={listing.isPlaceholder}
             />
           {/each}
         </div>
