@@ -6,6 +6,11 @@ const isMissingPreferencesTable = (message: string | undefined) => {
   return lower.includes("could not find the table") && lower.includes("preferences");
 };
 
+const isMissingTenantNameColumn = (message: string | undefined) => {
+  const lower = (message ?? "").toLowerCase();
+  return lower.includes("column") && lower.includes("name") && lower.includes("does not exist");
+};
+
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
   if (typeof value !== "string") return "";
@@ -24,6 +29,18 @@ export const load: PageServerLoad = async ({ locals }) => {
   if (!locals.user) return redirect(303, "/login");
   if (locals.accountType !== "tenant") return redirect(303, "/");
 
+  const { data: tenantRow, error: tenantError } = await locals.supabase
+    .from("tenants")
+    .select("name")
+    .eq("id", locals.user.id)
+    .maybeSingle();
+  if (tenantError) console.error(tenantError);
+  const tenantNameMessage = tenantError
+    ? (isMissingTenantNameColumn(tenantError.message)
+      ? "Tenant name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor."
+      : tenantError.message)
+    : null;
+
   const { data, error } = await locals.supabase
     .from("preferences")
     .select("organization, noise, cleanliness, sleep_schedule, pets, smoking, overnight_guests")
@@ -35,13 +52,47 @@ export const load: PageServerLoad = async ({ locals }) => {
     const message = isMissingPreferencesTable(error.message)
       ? "Preferences table is not set up yet."
       : error.message;
-    return { preferences: null, message };
+    return { preferences: null, message, tenantName: tenantRow?.name ?? "", tenantNameMessage };
   }
 
-  return { preferences: data ?? null, message: null };
+  return { preferences: data ?? null, message: null, tenantName: tenantRow?.name ?? "", tenantNameMessage };
 };
 
 export const actions: Actions = {
+  updateName: async ({ request, locals }) => {
+    const user = locals.user;
+    if (!user) return redirect(303, "/login");
+    if (locals.accountType !== "tenant") return fail(403, { nameFormMessage: "Only tenants can update their name." });
+
+    const formData = await request.formData();
+    const name = getString(formData, "name");
+
+    if (!name) return fail(400, { nameFormMessage: "Name is required." });
+    if (name.length > 80) return fail(400, { nameFormMessage: "Name is too long (max 80 characters)." });
+
+    const { error } = await locals.supabase
+      .from("tenants")
+      .update({ name })
+      .eq("id", user.id);
+
+    if (error) {
+      console.error(error);
+      if (isMissingTenantNameColumn(error.message)) {
+        return fail(500, {
+          nameFormMessage: "Tenant name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor.",
+        });
+      }
+      return fail(500, { nameFormMessage: error.message });
+    }
+
+    try {
+      await locals.supabase.auth.updateUser({ data: { name } });
+    } catch (authError) {
+      console.error(authError);
+    }
+
+    return redirect(303, "/profile");
+  },
   create: async ({ request, locals }) => {
     const user = locals.user;
     if (!user) return redirect(303, "/login");

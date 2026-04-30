@@ -22,6 +22,11 @@ const isMissingApplicationsTable = (message: string | undefined) => {
   return lower.includes("could not find the table") && lower.includes("applications");
 };
 
+const isMissingTenantNameColumn = (message: string | undefined) => {
+  const lower = (message ?? "").toLowerCase();
+  return lower.includes("column") && lower.includes("name") && lower.includes("does not exist");
+};
+
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
   if (typeof value !== "string") return "";
@@ -207,6 +212,24 @@ export const actions: Actions = {
   submit: async ({ locals, request }) => {
     if (!locals.user) return redirect(303, "/login");
     if (locals.accountType !== "tenant") return fail(403, { message: "Only tenants can submit applications." });
+
+    const { data: tenantRow, error: tenantError } = await locals.supabase
+      .from("tenants")
+      .select("name")
+      .eq("id", locals.user.id)
+      .maybeSingle();
+    if (tenantError) {
+      console.error(tenantError);
+      if (isMissingTenantNameColumn(tenantError.message)) {
+        return fail(500, {
+          message: "Tenant name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor.",
+        });
+      }
+    }
+    const tenantName = (tenantRow?.name ?? "").trim();
+    if (!tenantName) {
+      return fail(400, { message: "Please set your name in Profile before submitting applications." });
+    }
 
     const formData = await request.formData();
     const listingId = getString(formData, "listing_id");

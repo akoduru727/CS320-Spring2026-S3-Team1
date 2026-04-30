@@ -7,6 +7,7 @@
   const { data, form } = $props();
 
   const hasSavedPreferences = $derived(Boolean(data.preferences));
+  const hasName = $derived(Boolean((data.tenantName ?? "").trim()));
 
   let organization = $state(data.preferences?.organization ?? 0);
   let cleanliness = $state(data.preferences?.cleanliness ?? 0);
@@ -15,6 +16,7 @@
   let pets = $state(Boolean(data.preferences?.pets));
   let smoking = $state(Boolean(data.preferences?.smoking));
   let overnight = $state(Boolean(data.preferences?.overnight_guests));
+  let name = $state(data.tenantName ?? "");
 </script>
 
 <div class="flex-1 overflow-y-auto">
@@ -36,6 +38,57 @@
         </span>
       </button>
     </div>
+
+    <form method="POST" action="?/updateName">
+      <Card class="space-y-4">
+        <div class="flex items-start justify-between gap-4">
+          <div class="space-y-1">
+            <h2 class="text-xl font-semibold tracking-tighter">Display name</h2>
+            <p class="text-sm text-zinc-600">
+              Landlords will see this name on applications.
+            </p>
+          </div>
+          {#if hasName}
+            <span class="rounded-full bg-green-600/10 px-2.5 py-1 text-xs font-medium text-green-900">
+              Set
+            </span>
+          {:else}
+            <span class="rounded-full bg-red-600/10 px-2.5 py-1 text-xs font-medium text-red-900">
+              Required
+            </span>
+          {/if}
+        </div>
+
+        {#if data.tenantNameMessage}
+          <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {data.tenantNameMessage}
+          </div>
+        {/if}
+
+        {#if form?.nameFormMessage}
+          <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {form.nameFormMessage}
+          </div>
+        {/if}
+
+        <label class="block space-y-1">
+          <p class="text-sm font-medium text-zinc-700">Name</p>
+          <input
+            name="name"
+            bind:value={name}
+            autocomplete="name"
+            class="w-full rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm"
+            placeholder="e.g. Jane Doe"
+          />
+        </label>
+
+        <div class="flex justify-end">
+          <button type="submit" class="bg-zinc-900 hover:bg-zinc-800 transition-colors text-zinc-100 text-sm font-medium px-4 py-2 rounded">
+            Save name
+          </button>
+        </div>
+      </Card>
+    </form>
 
     <form method="POST" action="?/create">
     <Card class="space-y-6">
