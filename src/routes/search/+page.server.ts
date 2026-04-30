@@ -13,9 +13,32 @@ export type Listing = {
   distance_from_campus_mi: number | null;
 };
 
-export const load: PageServerLoad = async ({ locals }) => {
+const parseFilterNumber = (value: string | null) => {
+  if (value == null || value === "") return 0;
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+
+  return parsed;
+};
+
+const escapeIlikePattern = (value: string) =>
+  value
+    .replaceAll("\\", "\\\\")
+    .replaceAll("%", "\\%")
+    .replaceAll("_", "\\_")
+    .replaceAll(",", "\\,")
+    .replaceAll("(", "\\(")
+    .replaceAll(")", "\\)");
+
+export const load: PageServerLoad = async ({ locals, url }) => {
   if (locals.accountType !== "tenant") return redirect(303, "/");
   if (!locals.user) return redirect(303, "/login");
+
+  const search = url.searchParams.get("search")?.trim() ?? "";
+  const baths = parseFilterNumber(url.searchParams.get("baths"));
+  const beds = parseFilterNumber(url.searchParams.get("beds"));
+  const maxMiles = parseFilterNumber(url.searchParams.get("maxMiles"));
 
   const { data: tenantRow, error: tenantError } = await locals.supabase
     .from("tenants")
@@ -26,12 +49,29 @@ export const load: PageServerLoad = async ({ locals }) => {
   if (tenantError) console.error(tenantError);
   const favoriteIds = ((tenantRow?.favorite_houses ?? []) as string[]).filter(Boolean);
 
-  const { data: listingRows, error: listingError } = await locals.supabase
+  let listingQuery = locals.supabase
     .from("listings")
-    .select("id, title, baths, beds, address, distance_from_campus_mi");
+    .select("id, title, baths, beds, address, distance_from_campus_mi")
+    .limit(60);
+    // TODO: technically we should have pagination or infinite scroll if we limit, but alas...
+
+  if (search) {
+    const escapedSearch = escapeIlikePattern(search);
+    listingQuery = listingQuery.or(`title.ilike.%${escapedSearch}%,address.ilike.%${escapedSearch}%`);
+  }
+  if (baths > 0) listingQuery = listingQuery.eq("baths", baths);
+  if (beds > 0) listingQuery = listingQuery.eq("beds", beds);
+  if (maxMiles > 0) listingQuery = listingQuery.lte("distance_from_campus_mi", maxMiles);
+
+  const { data: listingRows, error: listingError } = await listingQuery;
   if (listingError) {
     console.error(listingError);
-    return { listings: [] as Listing[], favoriteIds, message };
+    return {
+      listings: [] as Listing[],
+      favoriteIds,
+      message,
+      filters: { search, baths, beds, maxMiles }
+    };
   }
 
   const listingsObj = listingRows ?? [];
@@ -52,9 +92,14 @@ export const load: PageServerLoad = async ({ locals }) => {
     beds: row.beds,
     address: row.address,
     img: coverUrlByListingId.get(row.id) ?? null,
-    distance_from_campus_mi: row.distance_from_campus_mi ?? null //need to figure this out later how we calculate distance
+    distance_from_campus_mi: row.distance_from_campus_mi ?? null
   }));
-  return { listings, favoriteIds, message };
+  return {
+    listings,
+    favoriteIds,
+    message,
+    filters: { search, baths, beds, maxMiles }
+  };
 };
 
 export const actions: Actions = {
@@ -94,6 +139,6 @@ export const actions: Actions = {
     }
     if (!updatedTenant) return fail(500, { message: "Favorite update failed (no row returned)." });
 
-    return redirect(303, url.pathname);
+    return redirect(303, `${url.pathname}${url.search}`);
   }
 };

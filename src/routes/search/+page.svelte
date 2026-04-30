@@ -16,29 +16,12 @@
 
   const favoriteSet = $derived(new Set(data.favoriteIds ?? []));
 
-  let filteredSearch = $derived(
-    (data.listings ?? []).filter((listing) => {
-      const query = searchTerm.toLowerCase();
-      const title = (listing.title ?? "").toLowerCase();
-      const address = (listing.address ?? "").toLowerCase();
-      let bathBool = false;
-      let bedBool = false;
-      let miBool = false;
-      if(bathValue == 0 || listing.baths == bathValue) {
-        bathBool = true;
-      } else bathBool = false;
-      if(bedValue == 0 || listing.beds == bedValue) {
-        bedBool = true;
-      } else bedBool = false;
-      if(miValue == 0 || (listing.distance_from_campus_mi ?? 0) <= miValue) {
-        miBool = true;
-      } else miBool = false;
-      return (
-        (title.includes(query) || address.includes(query)) && 
-        (bathBool && bedBool && miBool)
-      );
-    })
-  );
+  $effect(() => {
+    searchTerm = data.filters?.search ?? "";
+    bathValue = data.filters?.baths ?? 0;
+    bedValue = data.filters?.beds ?? 0;
+    miValue = data.filters?.maxMiles ?? 0;
+  });
 </script>
 
 
@@ -46,46 +29,64 @@
   <section class="p-8 space-y-8 flex flex-col flex-1">
     <!-- search bar and filters -->
     <Card class="p-4">
-      <div class="flex items-center gap-6">
-        <input type="text" placeholder="Search for a listing..."
-          class="w-full px-3 py-2 bg-zinc-200 rounded-xl"
-          bind:value={searchTerm}
-        />
-        <button class="tracking-tighter font-medium px-3 py-1 rounded-lg bg-red-800 hover:bg-red-700 transition-colors text-zinc-100">
-          Search
-        </button>
-        <button 
-          onclick={toggleShowFilters}
-          title="Show filters"
-        >
-          <ChevronUp 
-            class="transition-transform {showFilters ? "scale-y-100" : "-scale-y-100"}"
+      <form method="GET" class="space-y-3">
+        <div class="flex items-center gap-6">
+          <input
+            type="text"
+            name="search"
+            placeholder="Search for a listing..."
+            class="w-full px-3 py-2 bg-zinc-200 rounded-xl"
+            bind:value={searchTerm}
           />
-        </button>
-      </div>
-
-      <div class="grid transition-all ease-in-out {showFilters ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}">
-        <div class="flex gap-9 mt-3 overflow-hidden">
-          <Slider 
-            min=0 max=10 
-            bind:value={bathValue} 
-            showAny={_ => "Any number of baths"}
-            showValue={n => pluralize("bath", n)}
-          />
-          <Slider 
-            min=0 max=10 
-            bind:value={bedValue} 
-            showAny={_ => "Any number of beds"}
-            showValue={n => pluralize("bed", n)}
-          />
-          <Slider 
-            min=0 max=10 
-            bind:value={miValue} 
-            showAny={_ => "Any distance from campus"}
-            showValue={n => `Within ${pluralize("mile", n)} of campus`}
-          />
+          <button
+            type="submit"
+            class="tracking-tighter font-medium px-3 py-1 rounded-lg bg-red-800 hover:bg-red-700 transition-colors text-zinc-100"
+          >
+            Search
+          </button>
+          <button
+            type="button"
+            onclick={toggleShowFilters}
+            title="Show filters"
+          >
+            <ChevronUp
+              class="transition-transform {showFilters ? "scale-y-100" : "-scale-y-100"}"
+            />
+          </button>
         </div>
-      </div>
+
+        <div class="grid transition-all ease-in-out {showFilters ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}">
+          <div class="flex gap-9 overflow-hidden">
+            <div class="flex-1">
+              <input type="hidden" name="baths" value={bathValue} />
+              <Slider
+                min=0 max=10
+                bind:value={bathValue}
+                showAny={_ => "Any number of baths"}
+                showValue={n => pluralize("bath", n)}
+              />
+            </div>
+            <div class="flex-1">
+              <input type="hidden" name="beds" value={bedValue} />
+              <Slider
+                min=0 max=10
+                bind:value={bedValue}
+                showAny={_ => "Any number of beds"}
+                showValue={n => pluralize("bed", n)}
+              />
+            </div>
+            <div class="flex-1">
+              <input type="hidden" name="maxMiles" value={miValue} />
+              <Slider
+                min=0 max=10
+                bind:value={miValue}
+                showAny={_ => "Any distance from campus"}
+                showValue={n => `Within ${pluralize("mile", n)} of campus`}
+              />
+            </div>
+          </div>
+        </div>
+      </form>
     </Card>
 
     <!-- error message -->
@@ -98,13 +99,13 @@
     <div class="flex-1 flex gap-5 min-h-0 justify-between">
       <div class="w-full overflow-y-auto">
         <div class='grid grid-cols-3 gap-6 justify-between'>
-          {#if filteredSearch.length == 0}
+          {#if (data.listings ?? []).length == 0}
             <div class="space-y-1">
-              <h2 class="text-2xl font-semibold tracking-tight">No listings</h2>
-              <p class="text-sm text-zinc-600">Try adjusting your search parameters</p>
+              <h2 class="text-2xl font-semibold tracking-tight">No Listings</h2>
+              <p class="text-sm text-zinc-600">Try adjusting your search parameters.</p>
             </div>
           {:else}
-            {#each filteredSearch as listing (listing.id)}
+            {#each data.listings ?? [] as listing (listing.id)}
                 <Card class="relative space-y-3 p-4">
                   <a
                     href="/listings/{listing.id}"
