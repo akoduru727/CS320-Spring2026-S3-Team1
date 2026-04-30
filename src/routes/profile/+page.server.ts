@@ -25,9 +25,12 @@ const parseIntField = (formData: FormData, key: string, label: string) => {
   return { value: parsed } as const;
 };
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   if (!locals.user) return redirect(303, "/login");
   if (locals.accountType !== "tenant") return redirect(303, "/");
+
+  const savedParam = url.searchParams.get("saved");
+  const saved = savedParam === "name" || savedParam === "preferences" ? savedParam : null;
 
   const { data: tenantRow, error: tenantError } = await locals.supabase
     .from("tenants")
@@ -52,10 +55,10 @@ export const load: PageServerLoad = async ({ locals }) => {
     const message = isMissingPreferencesTable(error.message)
       ? "Preferences table is not set up yet."
       : error.message;
-    return { preferences: null, message, tenantName: tenantRow?.name ?? "", tenantNameMessage };
+    return { preferences: null, message, tenantName: tenantRow?.name ?? "", tenantNameMessage, saved };
   }
 
-  return { preferences: data ?? null, message: null, tenantName: tenantRow?.name ?? "", tenantNameMessage };
+  return { preferences: data ?? null, message: null, tenantName: tenantRow?.name ?? "", tenantNameMessage, saved };
 };
 
 export const actions: Actions = {
@@ -91,7 +94,7 @@ export const actions: Actions = {
       console.error(authError);
     }
 
-    return redirect(303, "/profile");
+    return redirect(303, "/profile?saved=name");
   },
   create: async ({ request, locals }) => {
     const user = locals.user;
@@ -147,6 +150,6 @@ export const actions: Actions = {
       return fail(500, { message: `Unexpected error: ${error.message}.` });
     }
 
-    return redirect(303, "/profile");
+    return redirect(303, "/profile?saved=preferences");
   }
 }
