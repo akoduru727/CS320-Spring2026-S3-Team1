@@ -105,20 +105,23 @@
             </div>
           {:else}
             {#each filteredSearch as listing (listing.id)}
-               <a href={`/listings/${listing.id}`}>
-                <Card class="p-4 space-y-3">
+                <Card class="relative space-y-3 p-4">
+                  <a
+                    href="/listings/{listing.id}"
+                    aria-label="View {listing.title}"
+                    class="absolute inset-0"
+                  ></a>
+
                   <img
                     src={listing.img ?? "/listing-placeholder.png"}
                     alt={listing.address}
-                    class={listing.img
-                      ? "w-full h-40 rounded-md object-cover"
-                      : "w-full h-40 rounded-md bg-zinc-200 object-contain p-6"}
+                    class="w-full h-40 rounded-md {listing.img ? "object-cover" : "object-contain bg-zinc-200 p-6"}"
                   />
 
                   <div class="space-y-1">
                     <div class="flex items-start justify-between gap-3">
                       <h2 class="text-2xl font-semibold tracking-tight">{listing.title}</h2>
-                      <form method="POST" action="?/toggleFavorite">
+                      <form method="POST" action="?/toggleFavorite" class="relative z-10">
                         <input type="hidden" name="id" value={listing.id} />
                         <button
                           type="submit"
@@ -147,7 +150,6 @@
                     </p>
                   </div>
                 </Card>
-               </a>
             {/each}
           {/if}
         </div>
