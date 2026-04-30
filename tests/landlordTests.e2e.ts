@@ -40,7 +40,7 @@ test.describe('Landlord Dashboard', () => {
 
   //Post listing button
   test('create listing button is visible', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /Create Listing/i }).last()).toBeVisible();
+    await expect(page.getByRole('link', { name: /Create Listing/i }).last()).toBeVisible();
   });
 
   //Listings
