@@ -15,7 +15,7 @@
     accountType === "tenant" ? [
       { name: "Profile", href: "/profile" },
       { name: "Connect", href: "/" },
-      { name: "Chats", href: "/" },
+      { name: "Chats", href: "/renter-chatroom" },
       { name: "Favorites", href: "/favorites" },
       { name: "History", href: "/" },
       { name: "About", href: "/" },
