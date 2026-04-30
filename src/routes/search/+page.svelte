@@ -95,7 +95,7 @@
 
                 <div class="space-y-1">
                   <div class="flex items-start justify-between gap-3">
-                    <h2 class="text-2xl font-semibold tracking-tight">{listing.address}</h2>
+                    <h2 class="text-2xl font-semibold tracking-tight">{listing.title}</h2>
                     <form method="POST" action="?/toggleFavorite">
                       <input type="hidden" name="id" value={listing.id} />
                       <button
@@ -112,14 +112,15 @@
                       </button>
                     </form>
                   </div>
+
+                  <p class="text-lg">
+                    {listing.address}
+                  </p>
                   <p class="text-sm text-zinc-600">
-                    Distance from campus
                     <span class="font-medium text-zinc-800">
                       {listing.distance_from_campus_mi} mi
                     </span>
-                  </p>
-                  <p class="text-l text-zinc-1000">
-                    {listing.title}
+                    from campus
                   </p>
                 </div>
               </Card>
