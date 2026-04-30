@@ -15,6 +15,17 @@
   const toggleShowFilters = () => { showFilters = !showFilters };
 
   const favoriteSet = $derived(new Set(data.favoriteIds ?? []));
+  const favoriteAction = $derived.by(() => {
+    const params = new URLSearchParams();
+
+    if (data.filters?.search) params.set("search", data.filters.search);
+    if ((data.filters?.baths ?? 0) > 0) params.set("baths", String(data.filters.baths));
+    if ((data.filters?.beds ?? 0) > 0) params.set("beds", String(data.filters.beds));
+    if ((data.filters?.maxMiles ?? 0) > 0) params.set("maxMiles", String(data.filters.maxMiles));
+
+    const query = params.toString();
+    return query ? `?/toggleFavorite&${query}` : "?/toggleFavorite";
+  });
 
   $effect(() => {
     searchTerm = data.filters?.search ?? "";
@@ -122,7 +133,7 @@
                   <div class="space-y-1">
                     <div class="flex items-start justify-between gap-3">
                       <h2 class="text-2xl font-semibold tracking-tight">{listing.title}</h2>
-                      <form method="POST" action="?/toggleFavorite" class="relative z-10">
+                      <form method="POST" action={favoriteAction} class="relative z-10">
                         <input type="hidden" name="id" value={listing.id} />
                         <button
                           type="submit"

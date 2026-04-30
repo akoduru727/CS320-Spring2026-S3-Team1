@@ -13,6 +13,37 @@ export type Listing = {
   distance_from_campus_mi: number | null;
 };
 
+const buildSearchQuery = ({
+  search,
+  baths,
+  beds,
+  maxMiles
+}: {
+  search: string;
+  baths: number;
+  beds: number;
+  maxMiles: number;
+}) => {
+  const params = new URLSearchParams();
+
+  if (search) params.set("search", search);
+  if (baths > 0) params.set("baths", String(baths));
+  if (beds > 0) params.set("beds", String(beds));
+  if (maxMiles > 0) params.set("maxMiles", String(maxMiles));
+
+  const query = params.toString();
+  return query ? `?${query}` : "";
+};
+
+const buildSearchQueryFromParams = (searchParams: URLSearchParams) => {
+  const search = searchParams.get("search")?.trim() ?? "";
+  const baths = parseFilterNumber(searchParams.get("baths"));
+  const beds = parseFilterNumber(searchParams.get("beds"));
+  const maxMiles = parseFilterNumber(searchParams.get("maxMiles"));
+
+  return buildSearchQuery({ search, baths, beds, maxMiles });
+};
+
 const parseFilterNumber = (value: string | null) => {
   if (value == null || value === "") return 0;
 
@@ -139,6 +170,6 @@ export const actions: Actions = {
     }
     if (!updatedTenant) return fail(500, { message: "Favorite update failed (no row returned)." });
 
-    return redirect(303, `${url.pathname}${url.search}`);
+    return redirect(303, `${url.pathname}${buildSearchQueryFromParams(url.searchParams)}`);
   }
 };
