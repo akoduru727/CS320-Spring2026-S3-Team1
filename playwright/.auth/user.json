@@ -1,14 +1,44 @@
 {
   "cookies": [
     {
-      "name": "e2e-user",
-      "value": "{\"id\":\"playwright-user\",\"email\":\"playwright@example.com\",\"account_type\":\"landlord\"}",
-      "domain": "127.0.0.1",
+      "name": "sb-crkacbckeustuztbowsb-auth-token-code-verifier",
+      "value": "base64-ImZhYzBhZGU1OTQ5MzlmM2ZhMDEzN2YzODUzY2ViYzg3MjI1YzdhZGM1NmYwOTIwNmI5MmY0NWJmMDAyNjE2NzI0ODE4MTVmZTY5ZDAwYjAxMzliMjA5NzM1MzFiZGVhZWY4MWNkZWI0MzI3OTY2ODki",
+      "domain": "localhost",
       "path": "/",
-      "expires": -1,
+      "expires": 1809489726.475147,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "__Host-GAPS",
+      "value": "1:LrrBLOT5H1VSYkLJRwSQJPdVCGA-_w:kWfrvjam5FbPvDcv",
+      "domain": "accounts.google.com",
+      "path": "/",
+      "expires": 1809489727.195085,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "OTZ",
+      "value": "8543762_72_76_104100_72_446760",
+      "domain": "accounts.google.com",
+      "path": "/",
+      "expires": 1777521727,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "NID",
+      "value": "530=YhQtVGnZ_fPxYQssT4nMw14DPkR02mXvClhMI4pc6yuJcjt-97VBftDsTaZfuzLjvMpq7sG51r3itLKqizH-qFYftQFOEvq11i9Bt0H5GGxIOGvbTSLSYS0XrOCELnvY1N_eKizT4mgpYcU-_hXn9Rx05OVwS43z7hNC8vsdCpnYY0mbGg4LHY0UpGQfOAEFKeEqbbrNGKo2TPulL9vLjmY",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1790740927.715383,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
     }
   ],
   "origins": []
