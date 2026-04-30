@@ -37,14 +37,22 @@
 <div class="flex flex-1 overflow-hidden">
   <section class="flex flex-1 flex-col space-y-8 p-8">
 
-    <!-- HEADER + SEARCH -->
-    <div class="flex flex-col items-center justify-center gap-5 text-center">
-      <h1 class="text-5xl font-semibold tracking-tighter">
-        Welcome to your renting dashboard
-      </h1>
-      <p class="text-zinc-600">
-        Search, view, and apply for the listing right for you.
-      </p>
+<div class="flex-1 flex overflow-hidden">
+  <section class="p-8 space-y-8 flex flex-col flex-1">
+
+      <div class="flex gap-5 min-h-0 justify-center">
+        <div>
+          <div class="flex ">
+            <div class=" flex flex-col items-center justify-center gap-5">
+            <h1 class="text-5xl font-semibold tracking-tighter">
+              Search Listings
+            </h1>
+            <p class="text-zinc-600">
+              Browse available rentals and open a listing to apply.
+            </p>
+          </div>
+        </div>
+
 
       <div class="mt-6 w-full max-w-xl">
         <input
@@ -97,6 +105,7 @@
                       {listing.address}
                     </h2>
 
+                    <h2 class="text-2xl font-semibold tracking-tight">{listing.title}</h2>
                     <form method="POST" action="?/toggleFavorite">
                       <input type="hidden" name="id" value={listing.id} />
                       <button
@@ -121,8 +130,13 @@
 
                   <p class="text-sm text-zinc-600">
                     Distance:
+                  <p class="text-lg">
+                    {listing.address}
+                  </p>
+                  <p class="text-sm text-zinc-600">
                     <span class="font-medium text-zinc-800">
-                      {listing.distance_from_campus_mi} mi
+                      <!-- round to one decimal point -->
+                      {Math.round((listing.distance_from_campus_mi ?? 0) * 10) / 10} mi
                     </span>
                   </p>
 
@@ -144,6 +158,8 @@
                       Applied ✓
                     </a>  
                   {/if}
+                    from campus
+                  </p>
                 </div>
               </Card>
             {/each}

@@ -1,5 +1,6 @@
 import { fail, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
+import { getCoverImageUrlsByListingId } from "$lib/server/listing-images";
 
 /** Served from `static/listing-placeholder.png` */
 const PLACEHOLDER_IMAGE = "/listing-placeholder.png";
@@ -44,14 +45,26 @@ export const load: PageServerLoad = async ({ locals }) => {
     (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)
   );
 
+  const listingIds = listings
+    .map((listing) => listing.id)
+    .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+  let coverUrlByListingId = new Map<string, string>();
+
+  try {
+    coverUrlByListingId = await getCoverImageUrlsByListingId(locals.supabase, listingIds);
+  } catch (imagesError) {
+    console.error(imagesError);
+  }
+
   return {
     favorites: listings.map((listing) => ({
       id: listing.id,
       title: listing.title,
       address: listing.address,
       distanceFromCampusMi: listing.distance_from_campus_mi ?? 0,
-      imageSrc: resolveListingImage(listing.image_url),
-      isPlaceholder: isPlaceholderImage(listing.image_url),
+      imageSrc: resolveListingImage(coverUrlByListingId.get(listing.id)),
+      isPlaceholder: isPlaceholderImage(coverUrlByListingId.get(listing.id)),
     }))
   };
 };

@@ -22,6 +22,9 @@
 
 <svelte:head>
   <link rel="icon" href={favicon} />
+  <title>
+    amhrest
+  </title>
 </svelte:head>
 
 <main class="relative h-screen flex flex-col bg-zinc-200">
