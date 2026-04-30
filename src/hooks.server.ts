@@ -1,6 +1,7 @@
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from "$env/static/public";
 import { env } from "$env/dynamic/private";
 import { createServerClient } from "@supabase/ssr";
+import type { Session } from "@supabase/supabase-js";
 import { type Handle, redirect } from "@sveltejs/kit";
 
 const isAuthExempt = (path: string) => {
@@ -25,8 +26,8 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.supabase = supabase;
 
   if (env.auth === "true") {
-    const accountType = env.acc_type ?? "tenant";
-    const session = {
+    const accountType: "tenant" | "landlord" = env.acc_type === "landlord" ? "landlord" : "tenant";
+    const session: Session = {
       access_token: "e2e-access-token",
       token_type: "bearer",
       expires_in: 3600,
@@ -75,7 +76,8 @@ export const handle: Handle = async ({ event, resolve }) => {
   const { session, user } = await safeGetSession();
   event.locals.session = session;
   event.locals.user = user;
-  event.locals.accountType = user?.user_metadata.account_type;
+  const metadataType = user?.user_metadata?.account_type;
+  event.locals.accountType = metadataType === "tenant" || metadataType === "landlord" ? metadataType : null;
 
   /**
    * my code only delete this if wrong
@@ -96,7 +98,7 @@ export const handle: Handle = async ({ event, resolve }) => {
           account_type: e2eUser.account_type,
         },
       } as typeof event.locals.user;
-      event.locals.accountType = e2eUser.account_type;
+      event.locals.accountType = e2eUser.account_type === "landlord" ? "landlord" : "tenant";
       event.locals.session = {
         user: event.locals.user,
       } as typeof event.locals.session;

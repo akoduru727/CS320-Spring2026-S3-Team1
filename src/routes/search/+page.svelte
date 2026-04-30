@@ -23,12 +23,13 @@
       if(bathValue == 0 || listing.baths == bathValue) {
         bathBool = true;
       } else bathBool = false;
-      if(bedValue == 0 || listing.beds == bedValue) {
-        bedBool = true;
-      } else bedBool = false;
-      if(miValue == 0 || listing.distance_from_campus_mi <= miValue) {
-        miBool = true;
-      } else miBool = false;
+	      if(bedValue == 0 || listing.beds == bedValue) {
+	        bedBool = true;
+	      } else bedBool = false;
+	      const distanceFromCampus = listing.distance_from_campus_mi ?? Number.POSITIVE_INFINITY;
+	      if(miValue == 0 || distanceFromCampus <= miValue) {
+	        miBool = true;
+	      } else miBool = false;
       return (
         (title.includes(query) || address.includes(query)) && 
         (bathBool && bedBool && miBool)

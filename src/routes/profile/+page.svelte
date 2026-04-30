@@ -5,15 +5,11 @@
 		import Preference from "./Preference.svelte";
 	  import Avatar from "$lib/components/Avatar.svelte";
 	
-	  let profile = {
-	    avatarUrl: "",
-	    firstName: "Amanda",
-	  };
-
   const { data, form } = $props();
 
+  const isTenantMode = $derived(data.mode === "tenant");
   const hasSavedPreferences = $derived(Boolean(data.preferences));
-  const hasName = $derived(Boolean((data.tenantName ?? "").trim()));
+  const hasName = $derived(Boolean((data.profileName ?? "").trim()));
   const showNameSaved = $derived(data.saved === "name");
   const showPreferencesSaved = $derived(data.saved === "preferences");
 
@@ -34,7 +30,7 @@
     pets = Boolean(data.preferences?.pets);
     smoking = Boolean(data.preferences?.smoking);
     overnight = Boolean(data.preferences?.overnight_guests);
-    name = data.tenantName ?? "";
+    name = data.profileName ?? "";
   });
 
   onMount(() => {
@@ -53,37 +49,41 @@
           Profile
         </h1>
         <p class="text-zinc-600">
-          Manage your profile and roommate preferences.
+          {isTenantMode ? "Manage your profile and roommate preferences." : "Manage your profile details."}
         </p>
       </div>
     </div>
 
-	    <Card class="flex gap-6">
-	     <Avatar
-	       avatarUrl={profile.avatarUrl}
-	       firstName={profile.firstName}
-	    />
-	    </Card>
-
     <form method="POST" action="?/updateName">
       <Card class="space-y-4 bg-white/80 backdrop-blur shadow-sm">
-        <div class="flex items-start justify-between gap-4">
-          <div class="space-y-1">
-            <h2 class="text-xl font-semibold tracking-tighter">Display name</h2>
-            <p class="text-sm text-zinc-600">
-              Landlords will see this name on applications.
-            </p>
-          </div>
-          {#if hasName}
-            <span class="rounded-full bg-green-600/10 px-2.5 py-1 text-xs font-medium text-green-900">
-              Set
-            </span>
-          {:else}
-            <span class="rounded-full bg-red-600/10 px-2.5 py-1 text-xs font-medium text-red-900">
-              Required
-            </span>
-          {/if}
-        </div>
+	        <div class="flex items-start justify-between gap-4">
+	          <div class="flex items-center gap-5">
+	            <Avatar
+	              avatarUrl=""
+	              firstName={name || "A"}
+	            />
+	            <div class="space-y-1">
+	              <h2 class="text-xl font-semibold tracking-tighter">Display name</h2>
+	              <p class="text-sm text-zinc-600">
+	                {isTenantMode
+	                  ? "Landlords will see this name on applications."
+	                  : "Tenants will see this name on your listings and applications."}
+	              </p>
+	            </div>
+	          </div>
+	          <div class="space-y-1">
+	            <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Status</p>
+	            {#if hasName}
+	              <span class="rounded-full bg-green-600/10 px-2.5 py-1 text-xs font-medium text-green-900">
+	                Set
+	              </span>
+	            {:else}
+	              <span class="rounded-full bg-red-600/10 px-2.5 py-1 text-xs font-medium text-red-900">
+	                Required
+	              </span>
+	            {/if}
+	          </div>
+	        </div>
 
         {#if showNameSaved}
           <div class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-900">
@@ -91,9 +91,9 @@
           </div>
         {/if}
 
-        {#if data.tenantNameMessage}
+        {#if data.profileNameMessage}
           <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-            {data.tenantNameMessage}
+            {data.profileNameMessage}
           </div>
         {/if}
 
@@ -121,7 +121,8 @@
         </div>
       </Card>
 	    </form>
-	    <form method="POST" action="?/create">
+    {#if isTenantMode}
+		    <form method="POST" action="?/create">
     <Card class="space-y-6 bg-white/80 backdrop-blur shadow-sm">
       <h2 class="text-xl font-semibold tracking-tighter">
         Roommate Preferences
@@ -208,7 +209,8 @@
         </button>
       </div>
     </Card>
-    </form>
+	    </form>
+    {/if}
 
   </section>
 </div>

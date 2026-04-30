@@ -13,7 +13,7 @@
             return value + " " + unit + (value != 1 ? "s " : " ");
         }
     })
-    let unitEmoji = {
+    let unitEmoji: Record<string, string> = {
         "Bath": "🛁",
         "Bed": "🛏️",
         "Mile": "🚗"

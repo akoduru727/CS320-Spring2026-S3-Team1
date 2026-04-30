@@ -11,6 +11,12 @@ const isMissingTenantNameColumn = (message: string | undefined) => {
   return lower.includes("column") && lower.includes("name") && lower.includes("does not exist");
 };
 
+const getProfileTable = (accountType: "tenant" | "landlord" | null) => {
+  if (accountType === "tenant") return "tenants";
+  if (accountType === "landlord") return "landlords";
+  return null;
+};
+
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
   if (typeof value !== "string") return "";
@@ -27,22 +33,35 @@ const parseIntField = (formData: FormData, key: string, label: string) => {
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   if (!locals.user) return redirect(303, "/login");
-  if (locals.accountType !== "tenant") return redirect(303, "/");
+  const profileTable = getProfileTable(locals.accountType);
+  if (!profileTable) return redirect(303, "/");
+  const isTenant = locals.accountType === "tenant";
 
   const savedParam = url.searchParams.get("saved");
-  const saved = savedParam === "name" || savedParam === "preferences" ? savedParam : null;
+  const saved = savedParam === "name" || (isTenant && savedParam === "preferences") ? savedParam : null;
 
-  const { data: tenantRow, error: tenantError } = await locals.supabase
-    .from("tenants")
+  const { data: profileRow, error: profileError } = await locals.supabase
+    .from(profileTable)
     .select("name")
     .eq("id", locals.user.id)
     .maybeSingle();
-  if (tenantError) console.error(tenantError);
-  const tenantNameMessage = tenantError
-    ? (isMissingTenantNameColumn(tenantError.message)
-      ? "Tenant name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor."
-      : tenantError.message)
+  if (profileError) console.error(profileError);
+  const profileNameMessage = profileError
+    ? (isMissingTenantNameColumn(profileError.message)
+      ? "Profile name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor."
+      : profileError.message)
     : null;
+
+  if (!isTenant) {
+    return {
+      mode: "landlord" as const,
+      preferences: null,
+      message: null,
+      profileName: profileRow?.name ?? "",
+      profileNameMessage,
+      saved,
+    };
+  }
 
   const { data, error } = await locals.supabase
     .from("preferences")
@@ -55,17 +74,32 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     const message = isMissingPreferencesTable(error.message)
       ? "Preferences table is not set up yet."
       : error.message;
-    return { preferences: null, message, tenantName: tenantRow?.name ?? "", tenantNameMessage, saved };
+    return {
+      mode: "tenant" as const,
+      preferences: null,
+      message,
+      profileName: profileRow?.name ?? "",
+      profileNameMessage,
+      saved,
+    };
   }
 
-  return { preferences: data ?? null, message: null, tenantName: tenantRow?.name ?? "", tenantNameMessage, saved };
+  return {
+    mode: "tenant" as const,
+    preferences: data ?? null,
+    message: null,
+    profileName: profileRow?.name ?? "",
+    profileNameMessage,
+    saved,
+  };
 };
 
 export const actions: Actions = {
   updateName: async ({ request, locals }) => {
     const user = locals.user;
     if (!user) return redirect(303, "/login");
-    if (locals.accountType !== "tenant") return fail(403, { nameFormMessage: "Only tenants can update their name." });
+    const profileTable = getProfileTable(locals.accountType);
+    if (!profileTable) return fail(403, { nameFormMessage: "Only tenants and landlords can update their name." });
 
     const formData = await request.formData();
     const name = getString(formData, "name");
@@ -74,7 +108,7 @@ export const actions: Actions = {
     if (name.length > 80) return fail(400, { nameFormMessage: "Name is too long (max 80 characters)." });
 
     const { error } = await locals.supabase
-      .from("tenants")
+      .from(profileTable)
       .update({ name })
       .eq("id", user.id);
 
@@ -82,7 +116,7 @@ export const actions: Actions = {
       console.error(error);
       if (isMissingTenantNameColumn(error.message)) {
         return fail(500, {
-          nameFormMessage: "Tenant name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor.",
+          nameFormMessage: "Profile name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor.",
         });
       }
       return fail(500, { nameFormMessage: error.message });

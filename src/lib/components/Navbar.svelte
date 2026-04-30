@@ -42,6 +42,7 @@
     if (accountType === "landlord") {
       return [
         { name: "Dashboard", href: "/dashboard", icon: Home },
+        { name: "Profile", href: "/profile", icon: User },
         { name: "Create Listing", href: "/create-listing", icon: PlusSquare },
         { name: "Application Portal", href: "/application-portal", icon: FileText },
         { name: "Chats", href: "/chats", icon: MessageCircle },
