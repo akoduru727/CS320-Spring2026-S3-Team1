@@ -1,31 +1,25 @@
 <script lang="ts">
-    interface Props {
-        min: string;
-        max: string;
-        value: number;
-        unit: string;
-    };
-    let {min, max, value = $bindable(), unit}:Props = $props();
-    let unitStr:string = $derived.by(() => {
-        if(value == 0) {
-            return "Any # " + unit + "s ";
-        } else {
-            return value + " " + unit + (value != 1 ? "s " : " ");
-        }
-    })
-    let unitEmoji = {
-        "Bath": "🛁",
-        "Bed": "🛏️",
-        "Mile": "🚗"
-    };
+  interface Props {
+    min: string;
+    max: string;
+    value: number;
+    showValue: (value: number) => string;
+    showAny: (value: number) => string;
+  };
+
+  let { min, max, value = $bindable(), showValue, showAny }: Props = $props();
+
+  const unitStr: string = $derived(value === 0 
+    ? showAny(value)
+    : showValue(value));
 </script>
 
 <div class="flex-1">
-    <input type=range {min} {max} bind:value={value} class="w-full accent-red-500" />
-    <div class="flex">
-        <h2 class="">{unitStr}</h2>
-        {#each Array(value) as _}
-        <h1>{unitEmoji[unit]}</h1>
-        {/each}
-    </div>
+  <input
+    class="w-full accent-red-500" 
+    type="range" 
+    {min} 
+    {max} bind:value 
+  />
+  <h2>{unitStr}</h2>
 </div>
