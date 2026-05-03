@@ -10,7 +10,7 @@
   let bathValue = $state(0);
   let bedValue = $state(0);
   let miValue = $state(0);
-  let showFilters = $state(false);
+  let showFilters = $state(true);
 
   const toggleShowFilters = () => { showFilters = !showFilters };
 
