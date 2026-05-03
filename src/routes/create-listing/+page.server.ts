@@ -81,6 +81,7 @@ export const actions: Actions = {
             "+US&api_key=69e0f89a88c8f361421390rtzd3c1fd");
     if (!geoLocObj.ok) return fail(500, {message: "Geocoding Error"});
     const geoLocJson = (await geoLocObj.json())[0];
+    if(geoLocJson === undefined) return fail(500, {message: "Address Not Found"});
     const geoCoords = { latitude: geoLocJson.lat, longitude: geoLocJson.lon };
 
     const distanceFromCampus = (getDistance(UMASS_COORDS, geoCoords) / 1609);
