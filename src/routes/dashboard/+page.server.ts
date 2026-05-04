@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   // TODO: propagate this as a displayed error message
   if (error) {
     console.log("[error] failed to fetch listings for landlord");
-    return { listings: [] }
+    return { listings: [], numPendingApplications: NaN };
   }
 
   const listingIds = (data ?? [])
@@ -39,6 +39,17 @@ export const load: PageServerLoad = async ({ locals }) => {
     console.error(imagesError);
   }
 
+  // count pending applications
+  const { count: numPendingApplications, error: applicationError } = await locals.supabase
+    .from("applications")
+    .select("status", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  if (applicationError) {
+    console.log("[error] failed to fetch applications for landlord");
+    return { listings: [], numPendingApplications: NaN };
+  }
+
   return {
     listings: (data ?? []).map((listing) => {
       const coverImageUrl = coverUrlByListingId.get(listing.id);
@@ -48,7 +59,8 @@ export const load: PageServerLoad = async ({ locals }) => {
         imageSrc: resolveListingImage(coverImageUrl),
         isPlaceholder: isPlaceholderImage(coverImageUrl),
       };
-    })
+    }),
+    numPendingApplications,
   };
 };
 
