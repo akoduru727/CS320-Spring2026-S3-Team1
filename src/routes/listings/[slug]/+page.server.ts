@@ -31,10 +31,20 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     console.error(imagesError);
   }
 
+  const { data: applications } = await locals.supabase
+    .from("applications")
+    .select("listing")
+    .eq("tenant", locals.user.id);
+
+  const hasApplied = (applications ?? []).some(
+    (a) => a.listing === params.slug
+  );
+
   return {
     listing: data,
     listingImages,
     isFavorite: favoriteIds.includes(params.slug),
+    hasApplied,
   };
 };
 
@@ -74,4 +84,6 @@ export const actions: Actions = {
 
     return redirect(303, url.pathname);
   }
+
+  
 };

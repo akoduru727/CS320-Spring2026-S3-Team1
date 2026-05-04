@@ -15,6 +15,7 @@
       ? listingImages
       : [{ id: "placeholder", url: placeholderImage, cover: true }],
   );
+  const hasApplied = $derived(data.hasApplied);
 
   let copied = $state(false);
   let currentImageIndex = $state(0);
@@ -161,11 +162,41 @@
       </div>
     </div>
 
-    <a
-      href={`/application-portal?listing_id=${listing.id}`}
-      class="inline-flex rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-1.5 font-medium text-zinc-100"
-    >
-      Apply
-    </a>
-  </div>
+    {#if !hasApplied}
+
+      <a
+        href={`/application-portal?listing_id=${listing.id}`}
+        class="inline-flex rounded-md bg-red-800 hover:bg-red-700 px-4 py-1.5 font-medium text-zinc-100"
+      >
+        Apply
+      </a>
+
+    {:else}
+
+      <div class="text-red-800 font-medium">
+        Applied ✓
+      </div>
+
+      {#if listing.application_type === "contact"}
+        <div class="text-sm text-zinc-700 mt-2">
+          <p><strong>Email:</strong> {listing.contact_email}</p>
+
+          {#if listing.contact_phone}
+            <p><strong>Phone:</strong> {listing.contact_phone}</p>
+          {/if}
+        </div>
+      {/if}
+
+        {#if listing.application_type === "pdf"}
+          <a
+            href={listing.application_pdf_url}
+            target="_blank"
+            class="text-red-600 hover:underline text-sm mt-2 block"
+          >
+            View Application PDF
+          </a>
+        {/if}
+
+      {/if}
+    </div>
 </div>
