@@ -18,7 +18,7 @@
     </h3>
   {:else}
     <h2 class="text-3xl">
-      {page.error?.message ?? "Something went wrong."} 
+      {page.error?.message ?? "Something went wrong."}
     </h2>
   {/if}
 </div>
