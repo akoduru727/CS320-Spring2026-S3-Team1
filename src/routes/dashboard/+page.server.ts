@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   // TODO: propagate this as a displayed error message
   if (error) {
     console.log("[error] failed to fetch listings for landlord");
-    return { listings: [], numPendingApplications: NaN };
+    return { listings: [], numPendingApplications: NaN, numUnreadMessages: NaN };
   }
 
   const listingIds = (data ?? [])
@@ -40,14 +40,30 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   // count pending applications
-  const { count: numPendingApplications, error: applicationError } = await locals.supabase
+  let numPendingApplications = NaN;
+  const pendingApplicationsResult = await locals.supabase
     .from("applications")
     .select("status", { count: "exact", head: true })
     .eq("status", "pending");
 
-  if (applicationError) {
-    console.log("[error] failed to fetch applications for landlord");
-    return { listings: [], numPendingApplications: NaN };
+  if (pendingApplicationsResult.error || pendingApplicationsResult.count === null) {
+    console.log(`[error] landlord pending applications: ${pendingApplicationsResult.error?.message}`);
+  } else {
+    numPendingApplications = pendingApplicationsResult.count;
+  }
+
+  // count unread messages
+  let numUnreadMessages = NaN;
+  const unreadMessagesResult = await locals.supabase
+    .from("message")
+    .select("id, conversation!inner(chat_participants)", { count: "exact", head: true })
+    .eq("is_read", false)
+    .contains("conversation.chat_participants", [locals.user.id]);
+
+  if (unreadMessagesResult.error || unreadMessagesResult.count === null) {
+    console.log(`[error] landlord unread messages: ${unreadMessagesResult.error?.message}`);
+  } else {
+    numUnreadMessages = unreadMessagesResult.count;
   }
 
   return {
@@ -61,6 +77,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       };
     }),
     numPendingApplications,
+    numUnreadMessages,
   };
 };
 
