@@ -58,7 +58,7 @@ export const actions: Actions = {
     if (!locals.user) return;
 
     const listingId = await request.text();
-    const { data, error } = await locals.supabase
+    const { error } = await locals.supabase
       .from("listings")
       .delete()
       .eq("landlord", locals.user.id)

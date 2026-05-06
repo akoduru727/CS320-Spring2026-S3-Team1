@@ -124,7 +124,7 @@
 
       {#if carouselImages.length > 1}
         <div class="flex justify-center gap-2">
-          {#each carouselImages as _, index}
+          {#each carouselImages as carouselImage, index (`${carouselImage}-${index}`)}
             <button
               type="button"
               onclick={() => selectImage(index)}

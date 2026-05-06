@@ -1,8 +1,6 @@
 <script lang="ts">
   import Card from "$lib/components/Card.svelte";
 
-  const { data } = $props();
-  const { accountType } = $derived(data);
 </script>
 
 <div class="flex-1 overflow-y-auto">

@@ -51,13 +51,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       ? "Profile name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor."
       : profileError.message)
     : null;
+  const metadataName = typeof locals.user.user_metadata?.name === "string" ? locals.user.user_metadata.name.trim() : "";
+  const profileName = (profileRow?.name ?? "").trim() || metadataName;
 
   if (!isTenant) {
     return {
       mode: "landlord" as const,
       preferences: null,
       message: null,
-      profileName: profileRow?.name ?? "",
+      profileName,
       profileNameMessage,
       saved,
     };
@@ -78,7 +80,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       mode: "tenant" as const,
       preferences: null,
       message,
-      profileName: profileRow?.name ?? "",
+      profileName,
       profileNameMessage,
       saved,
     };
@@ -88,7 +90,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     mode: "tenant" as const,
     preferences: data ?? null,
     message: null,
-    profileName: profileRow?.name ?? "",
+    profileName,
     profileNameMessage,
     saved,
   };

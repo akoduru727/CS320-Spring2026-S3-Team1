@@ -57,11 +57,11 @@
     <form method="POST" action="?/updateName">
       <Card class="space-y-4 bg-white/80 backdrop-blur shadow-sm">
 	        <div class="flex items-start justify-between gap-4">
-	          <div class="flex items-center gap-5">
-	            <Avatar
-	              avatarUrl=""
-	              firstName={name || "A"}
-	            />
+		          <div class="flex items-center gap-5">
+		            <Avatar
+		              avatarUrl=""
+		              firstName={data.profileName || "A"}
+		            />
 	            <div class="space-y-1">
 	              <h2 class="text-xl font-semibold tracking-tighter">Display name</h2>
 	              <p class="text-sm text-zinc-600">
@@ -114,11 +114,11 @@
           />
         </label>
 
-        <div class="flex justify-end">
-          <button type="submit" class="bg-zinc-900 hover:bg-zinc-800 transition-colors text-zinc-100 text-sm font-medium px-4 py-2 rounded">
-            Save Name
-          </button>
-        </div>
+	        <div class="flex justify-end">
+	          <button type="submit" class="bg-zinc-900 hover:bg-zinc-700 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 transition-all duration-150 text-zinc-100 text-sm font-medium px-4 py-2 rounded">
+	            Save Name
+	          </button>
+	        </div>
       </Card>
 	    </form>
     {#if isTenantMode}

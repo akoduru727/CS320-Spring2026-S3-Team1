@@ -15,7 +15,7 @@
 </script>
 
 <div class="flex gap-2">
-  {#each {length: max} as _, i}
+  {#each { length: max }, i (i)}
     <button
       type="button"
       class="flex-1 h-2 rounded-full cursor-pointer transition ease-in-out duration-200"
