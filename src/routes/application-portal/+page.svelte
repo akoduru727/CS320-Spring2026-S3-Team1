@@ -195,9 +195,30 @@
                     <p class="text-sm text-zinc-700">From: {app.tenantLabel}</p>
                     <p class="text-xs text-zinc-600">{formatDate(app.createdAt)}</p>
                   </div>
-                  <span class={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusClass(app.status)}`}>
-                    {app.status}
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <span class={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusClass(app.status)}`}>
+                      {app.status}
+                    </span>
+                    <form
+                      method="POST"
+                      action="?/delete"
+                      class="inline-flex"
+                      onsubmit={(e) => {
+                        if (!confirm("Are you sure you want to delete this application?")) e.preventDefault();
+                      }}
+                    >
+                      <input type="hidden" name="application_id" value={app.id} />
+                      <button
+                        type="submit"
+                        class="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-800 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-zinc-500"
+                        disabled={!data.dbReady}
+                        aria-label="Delete Application"
+                        title="Delete Application"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </form>
+                  </div>
                 </div>
 
                 {#if app.message}

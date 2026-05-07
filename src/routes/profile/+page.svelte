@@ -115,7 +115,7 @@
         </label>
 
 	        <div class="flex justify-end">
-	          <button type="submit" class="bg-zinc-900 hover:bg-zinc-800 transition-colors text-zinc-100 text-sm font-medium px-4 py-2 rounded">
+	          <button type="submit" class="bg-zinc-900 hover:bg-zinc-700 transition-colors text-zinc-100 text-sm font-medium px-4 py-2 rounded">
 	            Save Name
 	          </button>
 	        </div>

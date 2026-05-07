@@ -185,17 +185,18 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 export const actions: Actions = {
   delete: async ({ locals, request }) => {
     if (!locals.user) return redirect(303, "/login");
-    if (locals.accountType !== "tenant") return fail(403, { message: "Only tenants can delete applications." });
+    if (locals.accountType !== "tenant" && locals.accountType !== "landlord") {
+      return fail(403, { message: "Only tenants and landlords can delete applications." });
+    }
 
     const formData = await request.formData();
     const applicationId = getString(formData, "application_id");
     if (!applicationId) return fail(400, { message: "Missing application id." });
 
-    const { error: deleteError } = await locals.supabase
-      .from("applications")
-      .delete()
-      .eq("id", applicationId)
-      .eq("tenant", locals.user.id);
+    const deleteQuery = locals.supabase.from("applications").delete().eq("id", applicationId);
+    if (locals.accountType === "tenant") deleteQuery.eq("tenant", locals.user.id);
+    if (locals.accountType === "landlord") deleteQuery.eq("landlord", locals.user.id);
+    const { error: deleteError } = await deleteQuery;
 
     if (deleteError) {
       console.error(deleteError);
