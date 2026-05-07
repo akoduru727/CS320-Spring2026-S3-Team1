@@ -45,7 +45,7 @@
                 <p class="text-lg">{listing.address}</p>
                 <p class="text-sm text-zinc-600">
                   <span class="font-medium text-zinc-800">
-                    {listing.distanceFromCampusMi} mi
+                    {Math.round((listing.distanceFromCampusMi ?? 0) * 10) / 10} mi
                   </span>
                   from campus
                 </p>
