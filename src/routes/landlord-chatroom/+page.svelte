@@ -3,6 +3,8 @@
   import RecentContact from "./RecentContact.svelte";
   import ContactRow from "./ContactRow.svelte";
   import ChatPage from "./ChatPage.svelte";
+  import {onMount} from "svelte";
+  import {supabase} from "$lib/supabase";
   //import {recentContacts, requestContacts, type Tab} from "./tempdata";
   //import {Users} from "@lucide/svelte";
   type Contact = {id: string, name: string};
@@ -48,6 +50,23 @@
     selectedContact = null;
     selectedConversationId = null;
   }
+  async function blockTenant(contact: Contact){
+    const formData = new FormData();
+    formData.append("contactId", contact.id);
+    await fetch("?/blockTenant", { method: "POST", body: formData });
+    contacts = contacts.filter(c => c.id !== contact.id);
+  }
+  onMount(() => {
+    const channel = supabase.channel("new-messages-landlord").on("postgres_changes", {event: "INSERT", schema: "public", table: "message"}, 
+    payload => {
+        const newMessage = payload.new as typeof messages[0];
+        const isRelevant = conversations.some(c => c.id === newMessage.conversation_id);
+        if (isRelevant){
+            messages = [...messages, newMessage];
+        }
+    }).subscribe();
+    return () => supabase.removeChannel(channel);
+  });
 </script>
 
 <div class = "flex-1 flex overflow-hidden">
@@ -58,7 +77,7 @@
                 <div class = "w-72 bg-zinc-400 p-4 flex flex-col">
                     
                     <!-- Recent Contacts-->
-                    <div class = "flex-1 space-y-3">
+                    <div class = "flex-1 space-y-3 overflow-y-auto">
                         <p class="text-sm font-semibold text-white uppercase tracking-wider mb-2 px-1">Recent Contacts</p>
                         <div class="border-b border-white mb-3"></div>
 
@@ -83,7 +102,7 @@
                         <!-- Contact List Area -->
                         <div class = "flex-1 bg-zinc-300 rounded-lg p-4 space-y-4 overflow-y-auto">
                             {#each filteredContacts as contact (contact.id)}
-                                <ContactRow name={contact.name} unreadCount = {unreadCountPerContact[contact.id] ?? 0} onMessageClick={() => openChat(contact)}/>
+                                <ContactRow name={contact.name} unreadCount = {unreadCountPerContact[contact.id] ?? 0} onMessageClick={() => openChat(contact)} onBlock={() => blockTenant(contact)}/>
                             {/each}
                         </div>
                     {/if}

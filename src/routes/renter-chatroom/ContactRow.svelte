@@ -82,12 +82,12 @@
                         >
                             Remove Friend
                         </button>
-                        <button
+                        <!-- <button
                             class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-zinc-100 transition-colors"
                             onclick={() => { onReport?.(); menuOpen = false; }}
                         >
                             Report
-                        </button>
+                        </button> (Removing Report Button)-->
                     <!-- Landlord List -->
                     {:else if type === "landlord"}
                         <button
@@ -98,18 +98,18 @@
                         </button>
 
                         <button
-                            class="w-full text-left px-4 py-2 text-sm text-black-500 hover:bg-zinc-100 transition-colors"
+                            class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-zinc-100 transition-colors"
                             onclick={() => { onReport?.(); menuOpen = false; }}
                         >
                             Block
                         </button>
 
-                        <button
+                        <!-- <button
                             class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-zinc-100 transition-colors"
                             onclick={() => { onReport?.(); menuOpen = false; }}
                         >
                             Report
-                        </button>
+                        </button> (Removing Report Button)-->
                     <!-- Request List -->
                     {:else if type === "requests"}
                         <button class="w-full flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-zinc-100 transition-colors"

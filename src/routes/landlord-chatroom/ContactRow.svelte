@@ -4,9 +4,35 @@
         name: string;
         unreadCount?: number;
         onMessageClick?: () => void;
+        onBlock(): void;
     };
-    const { name, unreadCount = 0, onMessageClick }: Props = $props();
+    const { name, unreadCount = 0, onMessageClick, onBlock }: Props = $props();
+
+    let menuOpen = $state(false);
+
+    function toggleMenu(e: MouseEvent) {
+        e.stopPropagation();
+        menuOpen = !menuOpen;
+    }
+
+    function handleClickOutside() {
+        menuOpen = false;
+    }
+
+    //delay for report and remove contacts menu button
+
+    let closeTimer: ReturnType<typeof setTimeout>;
+
+    function startClose() {
+        closeTimer = setTimeout(() => menuOpen = false, 150);
+    }
+
+    function cancelClose() {
+        clearTimeout(closeTimer);
+    }
 </script>
+
+<svelte:window onclick={handleClickOutside} />
 
 <div class="w-full flex items-center gap-3 bg-zinc-200 rounded-lg p-3 text-left">
     <!-- Profile Pic -->
@@ -32,8 +58,17 @@
         </button>
 
         <!-- Three Dots -->
-        <button class = "p-2 hover:bg-zinc-300 rounded-full transition-colors cursor-pointer">
-            <EllipsisVertical size={18} />
-        </button>
+        <div class="relative" role="menu" tabindex="-1" onmouseleave={startClose} onmouseenter={cancelClose}>
+            <button class = "p-2 hover:bg-zinc-300 rounded-full transition-colors cursor-pointer" onclick={toggleMenu}>
+                <EllipsisVertical size={18} />
+            </button>
+            {#if menuOpen}
+                <div class="absolute right-0 top-9 z-50 bg-white border border-zinc-200 rounded-lg shadow-lg py-1 w-36">
+                    <button class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-zinc-100 transition-colors" onclick={() => {onBlock?.(); menuOpen = false;}}>
+                        Block
+                    </button>
+                </div>
+            {/if}
+        </div>
     </div>
 </div>  
