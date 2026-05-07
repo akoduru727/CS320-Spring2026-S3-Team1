@@ -4,12 +4,14 @@
   import ContactRow from "./ContactRow.svelte";
   import ChatPage from "./ChatPage.svelte";
   import {onMount} from "svelte";
-  import {supabase} from "$lib/supabase";
+  import { totalUnreadCount } from "$lib/components/unreadStore";
+  //import {supabase} from "$lib/supabase";
   //import {recentContacts, requestContacts, type Tab} from "./tempdata";
   //import {Users} from "@lucide/svelte";
   type Contact = {id: string, name: string};
 
   export let data:{
+    supabase: any;
     contacts: Contact[];
     conversations: {id: string, chat_participants: string[], messages_id: string[]}[];
     messages: {id: string, created_at: string, sender: string, messages_content: string, conversation_id: string, is_read: boolean, read_at: string | null}[];
@@ -29,6 +31,7 @@
     return [contact.id, unreadCount];
   }));
   $: totalUnread = Object.values(unreadCountPerContact).reduce((sum, count) => sum + count, 0);
+  $: totalUnreadCount.set(totalUnread);
 
   async function openChat(contact: Contact){
     selectedContact = contact;
@@ -58,7 +61,7 @@
     contacts = contacts.filter(c => c.id !== contact.id);
   }
   onMount(() => {
-    const channel = supabase.channel("new-messages-landlord").on("postgres_changes", {event: "INSERT", schema: "public", table: "message"}, 
+    const channel = data.supabase.channel("new-messages-landlord").on("postgres_changes", {event: "INSERT", schema: "public", table: "message"}, 
     payload => {
         const newMessage = payload.new as typeof messages[0];
         const isRelevant = conversations.some(c => c.id === newMessage.conversation_id);
@@ -73,7 +76,7 @@
             messages = [...messages, newMessage];
         }
     }).subscribe();
-    return () => supabase.removeChannel(channel);
+    return () => data.supabase.removeChannel(channel);
   });
 </script>
 
@@ -95,7 +98,7 @@
                         <div class="border-b border-white mb-3"></div>
 
                         {#each contacts as contact (contact.id)}
-                            <RecentContact name={contact.name} onClick={() => openChat(contact)}/>
+                            <RecentContact name={contact.name} onClick={() => openChat(contact)} unreadCount={unreadCountPerContact[contact.id] ?? 0}/>
                         {/each}
                     </div>
                 </div>
@@ -105,7 +108,7 @@
                     {#if selectedContact && selectedConversationId}
                         {#key selectedContact.id}
                             <!-- Chat View -->
-                            <ChatPage contact = {selectedContact} conversationId = {selectedConversationId} onBack={closeChat}/>
+                            <ChatPage contact = {selectedContact} conversationId = {selectedConversationId} onBack={closeChat} supabase={data.supabase}/>
                         {/key}
                     {:else}
                         <!-- Search Box -->

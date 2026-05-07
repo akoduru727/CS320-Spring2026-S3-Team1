@@ -7,7 +7,7 @@
   import favicon from "$lib/assets/favicon.svg";
 
   const { data, children } = $props();
-  const { supabase, session, accountType } = $derived(data);
+  const { supabase, session, accountType} = $derived(data);
 
   onMount(() => {
     const { data } = supabase.auth.onAuthStateChange((event, _session) => {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import { totalUnreadCount } from "$lib/components/unreadStore";
   import {
     FileText,
     Home,
@@ -14,9 +15,10 @@
   interface Props {
     accountType: "tenant" | "landlord" | null,
     isAuthenticated: boolean,
+    totalUnread?: number;
   };
 
-  const { accountType, isAuthenticated }: Props = $props();
+  const { accountType, isAuthenticated, totalUnread = 0 }: Props = $props();
 
   type Route = {
     name: string;
@@ -74,6 +76,11 @@
         >
           <Icon size={16} />
           <span>{name}</span>
+          {#if name === "Chats" && $totalUnreadCount > 0}
+          <span class="min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            {$totalUnreadCount}
+          </span>
+          {/if}
         </a>
       {/each}
     </div>

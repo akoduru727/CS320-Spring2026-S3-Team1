@@ -1,7 +1,6 @@
 <script lang="ts">
     import ChatMessage from "./ChatMessage.svelte";
     import {tick, onMount} from "svelte";
-    import {supabase} from "$lib/supabase";
     import {PersonStanding} from "@lucide/svelte";
 
     interface Contact{
@@ -19,8 +18,10 @@
         contact: Contact;
         conversationId: string;
         onBack: () => void;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        supabase: any;
     };
-    const { contact, conversationId, onBack}: Props = $props();
+    const { contact, conversationId, onBack, supabase}: Props = $props();
 
     let newMessage = $state("");
     let chatArea: HTMLDivElement;
@@ -76,8 +77,8 @@
                 schema: "public",
                 table: "message",
                 filter: `conversation_id=eq.${conversationId}`
-                
-            }, async (payload) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            }, async (payload: any) => {
                 const row = payload.new;
                 messages = [...messages, {
                     senderName: row.sender === currentUserId ? "You" : contact.name,

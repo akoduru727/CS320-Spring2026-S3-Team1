@@ -7,10 +7,12 @@
   //import {recentContacts, friendContacts as initialFriendContacts, landlordContacts, requestContacts as initialRequestContacts, type Tab} from "./tempdata";
   import {Users, House, Mail} from "@lucide/svelte";
   import {onMount} from "svelte";
-  import {supabase} from "$lib/supabase";
+  import { totalUnreadCount } from "$lib/components/unreadStore";
   type Contact = {id: string, name: string, pinned?: boolean};
   type Tab = "friends" | "landlords" | "requests";
   export let data:{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase: any;
     friendContacts: Contact[];
     landlordContacts: Contact[];
     requestContacts: Contact[];
@@ -52,6 +54,7 @@
   $: friendTotalUnread = friendContacts.reduce((sum, c) => sum + (unreadCountPerContact[c.id] ?? 0), 0);
   $: landlordTotalUnread = landlordContacts.reduce((sum, c) => sum + (unreadCountPerContact[c.id] ?? 0), 0);
   $: requestTotalUnread = requestContacts.length;
+  $: totalUnreadCount.set(friendTotalUnread + landlordTotalUnread + requestTotalUnread);
   async function openChat(contact: Contact & {conversationId?: string | null}){
     console.log("openChat called for:", contact.name);
     selectedContact = contact;
@@ -142,8 +145,9 @@
     requestContacts = requestContacts.filter(c => c.id !== contact.id);
   }
   onMount(() => {
-    const channel = supabase.channel("new-messages").on("postgres_changes",{event: "INSERT", schema: "public", table: "message"}, 
-        (payload) => {
+    const channel = data.supabase.channel("new-messages").on("postgres_changes",{event: "INSERT", schema: "public", table: "message"}, 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: any) => {
             const newMessage = payload.new as typeof messages[0];
             const isRelevant = conversations.some(c => c.id === newMessage.conversation_id);
             if (isRelevant){
@@ -158,7 +162,7 @@
             }
         }
     ).subscribe();
-    return () => supabase.removeChannel(channel);
+    return () => data.supabase.removeChannel(channel);
   });
 </script>
 
@@ -179,7 +183,7 @@
                     <!-- Recent Contacts-->
                     <div class = "flex-1 space-y-3 overflow-y-auto">
                         {#each recentContacts as contact (contact.id)}
-                            <RecentContact name={contact.name} pinned = {contact.pinned} onClick={() => openChat(contact)}/>
+                            <RecentContact name={contact.name} pinned = {contact.pinned} onClick={() => openChat(contact)} unreadCount={unreadCountPerContact[contact.id] ?? 0}/>
                         {/each}
                     </div>
                 </div>
@@ -189,7 +193,7 @@
                     {#if selectedContact && selectedConversationId}
                         {#key selectedContact.id}
                             <!-- Chat View -->
-                            <ChatPage contact = {selectedContact} conversationId = {selectedConversationId} onBack = {closeChat}/>
+                            <ChatPage contact = {selectedContact} conversationId = {selectedConversationId} onBack = {closeChat} supabase={data.supabase}/>
                         {/key}
                     {:else}
                         <!-- Search Box -->

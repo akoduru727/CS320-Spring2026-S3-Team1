@@ -4,8 +4,9 @@
         name: string;
         pinned?: boolean;
         onClick?: () => void;
+        unreadCount?: number;
     };
-    const { name, pinned = false, onClick }: Props = $props();
+    const { name, pinned = false, onClick, unreadCount = 0 }: Props = $props();
 </script>
 
 <button class="w-full flex items-center gap-3 rounded-lg p-3 text-left hover:bg-zinc-300 active:scale-[0.98] active:bg-zinc-400 transition-all duration-100 cursor-pointer" onclick = {onClick}>
@@ -23,4 +24,10 @@
     <p class = "text-black font-medium truncate">
         {name}
     </p>
+    <!-- Unread Count -->
+    {#if unreadCount > 0}
+        <span class="ml-auto min-w-[22px] h-6 px-2 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            {unreadCount}
+        </span>
+    {/if}
 </button>
