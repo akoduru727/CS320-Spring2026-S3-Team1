@@ -3,11 +3,6 @@ import type { Actions, PageServerLoad } from "./$types";
 
 type ApplicationStatus = "pending" | "approved" | "rejected";
 
-type ListingOption = {
-  id: string;
-  label: string;
-};
-
 type TenantApplication = {
   id: string;
   listingId: string;
@@ -31,6 +26,11 @@ const isMissingApplicationsTable = (message: string | undefined) => {
   return lower.includes("could not find the table") && lower.includes("applications");
 };
 
+const isMissingTenantNameColumn = (message: string | undefined) => {
+  const lower = (message ?? "").toLowerCase();
+  return lower.includes("column") && lower.includes("name") && lower.includes("does not exist");
+};
+
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
   if (typeof value !== "string") return "";
@@ -43,6 +43,7 @@ const listingLabel = (row: { address: string | null; title: string | null }) => 
   return title ? `${address} — ${title}` : address;
 };
 
+
 export const load: PageServerLoad = async ({ locals, url }) => {
   if (!locals.user) return redirect(303, "/login");
   if (locals.accountType !== "tenant" && locals.accountType !== "landlord") {
@@ -51,16 +52,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
   if (locals.accountType === "tenant") {
     const requestedListingId = url.searchParams.get("listing_id")?.trim() || null;
-    const { data: listingRows, error: listingError } = await locals.supabase
-      .from("listings")
-      .select("id, address, title");
-
-    const listings: ListingOption[] = (listingRows ?? [])
-      .map((row) => ({
-        id: row.id as string,
-        label: listingLabel({ address: row.address as string | null, title: row.title as string | null }),
-      }))
-      .filter((row) => typeof row.id === "string" && row.id.length > 0);
 
     const { data: applicationRows, error: applicationError } = await locals.supabase
       .from("applications")
@@ -69,11 +60,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       .order("created_at", { ascending: false });
 
     const dbReady = !isMissingApplicationsTable(applicationError?.message);
-    const message = listingError?.message
-      ? listingError.message
-      : !dbReady
-        ? "Applications table is not set up yet. Run `scripts/supabase-applications.sql` in Supabase SQL editor."
-        : applicationError?.message || null;
+    const message = !dbReady
+      ? "Applications table is not set up yet. Run `scripts/supabase-applications.sql` in Supabase SQL editor."
+      : applicationError?.message || null;
     const rows = (applicationRows ?? []) as Array<{
       id: string;
       listing: string;
@@ -147,10 +136,29 @@ export const load: PageServerLoad = async ({ locals, url }) => {
         };
     }) : [];
 
-    const selectedListingId =
-      requestedListingId && listings.some((l) => l.id === requestedListingId) ? requestedListingId : null;
+    let selectedListing: { id: string; label: string } | null = null;
 
-    return { mode: "tenant" as const, listings, applications, message, selectedListingId, dbReady };
+    if (requestedListingId) {
+      const { data: selectedListingRow, error: selectedListingError } = await locals.supabase
+        .from("listings")
+        .select("id, address, title")
+        .eq("id", requestedListingId)
+        .single();
+
+      if (selectedListingError) {
+        console.error(selectedListingError);
+      } else if (selectedListingRow?.id) {
+        selectedListing = {
+          id: selectedListingRow.id as string,
+          label: listingLabel({
+            address: selectedListingRow.address as string | null,
+            title: selectedListingRow.title as string | null,
+          }),
+        };
+      }
+    }
+
+    return { mode: "tenant" as const, applications, message, dbReady, selectedListing };
   }
 
   const { data: applicationRows, error: applicationError } = await locals.supabase
@@ -220,15 +228,60 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
+  delete: async ({ locals, request }) => {
+    if (!locals.user) return redirect(303, "/login");
+    if (locals.accountType !== "tenant" && locals.accountType !== "landlord") {
+      return fail(403, { message: "Only tenants and landlords can delete applications." });
+    }
+
+    const formData = await request.formData();
+    const applicationId = getString(formData, "application_id");
+    if (!applicationId) return fail(400, { message: "Missing application id." });
+
+    const deleteQuery = locals.supabase.from("applications").delete().eq("id", applicationId);
+    if (locals.accountType === "tenant") deleteQuery.eq("tenant", locals.user.id);
+    if (locals.accountType === "landlord") deleteQuery.eq("landlord", locals.user.id);
+    const { error: deleteError } = await deleteQuery;
+
+    if (deleteError) {
+      console.error(deleteError);
+      if (isMissingApplicationsTable(deleteError.message)) {
+        return fail(500, {
+          message: "Applications table is not set up yet. Run `scripts/supabase-applications.sql` in Supabase SQL editor.",
+        });
+      }
+      return fail(500, { message: deleteError.message });
+    }
+
+    return redirect(303, "/application-portal");
+  },
   submit: async ({ locals, request }) => {
     if (!locals.user) return redirect(303, "/login");
     if (locals.accountType !== "tenant") return fail(403, { message: "Only tenants can submit applications." });
+
+    const { data: tenantRow, error: tenantError } = await locals.supabase
+      .from("tenants")
+      .select("name")
+      .eq("id", locals.user.id)
+      .maybeSingle();
+    if (tenantError) {
+      console.error(tenantError);
+      if (isMissingTenantNameColumn(tenantError.message)) {
+        return fail(500, {
+          message: "Tenant name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor.",
+        });
+      }
+    }
+    const tenantName = (tenantRow?.name ?? "").trim();
+    if (!tenantName) {
+      return fail(400, { message: "Please set your name in Profile before submitting applications." });
+    }
 
     const formData = await request.formData();
     const listingId = getString(formData, "listing_id");
     const message = getString(formData, "message") || null;
 
-    if (!listingId) return fail(400, { message: "Please select a listing." });
+    if (!listingId) return fail(400, { message: "Missing listing id." });
 
     const { data: listingRow, error: listingError } = await locals.supabase
       .from("listings")
@@ -264,7 +317,6 @@ export const actions: Actions = {
 
     return redirect(303, "/application-portal");
   },
-
   setStatus: async ({ locals, request }) => {
     if (!locals.user) return redirect(303, "/login");
     if (locals.accountType !== "landlord") return fail(403, { message: "Only landlords can update application status." });

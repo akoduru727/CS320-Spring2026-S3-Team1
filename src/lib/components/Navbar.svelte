@@ -1,4 +1,16 @@
 <script lang="ts">
+  import { page } from "$app/state";
+  import {
+    FileText,
+    Home,
+    MessageCircle,
+    PlusSquare,
+    Search,
+    Star,
+    User,
+    Users,
+  } from "@lucide/svelte";
+
   interface Props {
     accountType: "tenant" | "landlord" | null,
     isAuthenticated: boolean,
@@ -9,55 +21,75 @@
   type Route = {
     name: string;
     href: string;
+    icon: any;
   };
 
-  let routes: Route[] = $derived(
-    accountType === "tenant" ? [
-      { name: "Search", href: "/search" },
-      { name: "Profile", href: "/profile" },
-      { name: "Connect", href: "/" },
-      { name: "Chats", href: "/" },
-      { name: "Favorites", href: "/favorites" },
-      { name: "History", href: "/" },
-      { name: "About", href: "/" },
-      { name: "Application Portal", href: "/application-portal" },
-    ] : accountType === "landlord" ? [
-      { name: "Dashboard", href: "/dashboard" },
-      { name: "Create Listing", href: "/create-listing" },
-      { name: "Application Portal", href: "/application-portal" },
-      { name: "Chats", href: "/" },
-      { name: "About", href: "/" },
-    ] : []
-  );
+  const pathname = $derived(page.url.pathname);
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
+  let routes: Route[] = $derived.by(() => {
+    if (accountType === "tenant") {
+      return [
+        { name: "Search", href: "/search", icon: Search },
+        { name: "Profile", href: "/profile", icon: User },
+        { name: "Connect", href: "/connect", icon: Users },
+        { name: "Chats", href: "/chats", icon: MessageCircle },
+        { name: "Favorites", href: "/favorites", icon: Star },
+        { name: "Application Portal", href: "/application-portal", icon: FileText },
+      ];
+    }
+
+    if (accountType === "landlord") {
+      return [
+        { name: "Dashboard", href: "/dashboard", icon: Home },
+        { name: "Profile", href: "/profile", icon: User },
+        { name: "Create Listing", href: "/create-listing", icon: PlusSquare },
+        { name: "Application Portal", href: "/application-portal", icon: FileText },
+        { name: "Chats", href: "/chats", icon: MessageCircle },
+      ];
+    }
+
+    return [];
+  });
 </script>
 
-<nav class="flex items-center justify-between bg-zinc-100 p-4 shadow">
-  <a href="/">
-    <span class="select-none text-3xl font-bold tracking-tighter text-red-800">amhrest</span>
-  </a>
+<nav class="sticky top-0 z-50 border-b border-zinc-200 bg-zinc-100/90 backdrop-blur">
+  <div class="mx-auto flex max-w-6xl items-center gap-5 px-6 py-3">
+    <a href={isAuthenticated ? (accountType === "landlord" ? "/dashboard" : "/search") : "/login"}>
+      <span class="select-none text-3xl font-bold tracking-tighter text-red-800">amhrest</span>
+    </a>
 
-  <div class="flex items-center gap-9">
-    {#each routes as { name, href } (name)}
-      <a 
-        {href}
-        class="rounded-md px-3 py-1.5 hover:bg-zinc-200 transition-colors"
-      >
-        {name}
-      </a>
-    {/each}
+    <div class="flex flex-1 items-center justify-center gap-1">
+      {#each routes as { name, href, icon } (name)}
+        {@const Icon = icon}
+        <a
+          {href}
+          aria-current={isActive(href) ? "page" : undefined}
+          class={[
+            "inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap",
+            isActive(href)
+              ? "bg-zinc-200 text-zinc-900"
+              : "text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900",
+          ].join(" ")}
+        >
+          <Icon size={16} />
+          <span>{name}</span>
+        </a>
+      {/each}
+    </div>
 
     {#if isAuthenticated}
       <form method="POST" action="/auth/signout">
-       <button
+        <button
           type="submit"
-          class="rounded-md bg-zinc-900 hover:bg-zinc-800 transition-colors px-3 py-1.5 text-sm font-medium text-zinc-100"
+          class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-800"
         >
           Sign Out
         </button>
       </form>
     {:else}
       <a
-        class="rounded-md bg-zinc-900 hover:bg-zinc-800 transition-colors px-3 py-1.5 text-sm font-medium text-zinc-100"
+        class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-800"
         href="/login"
       >
         Sign In
