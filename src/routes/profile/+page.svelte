@@ -66,7 +66,7 @@
 
       {#if hasSavedPreferences}
         <div class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-900">
-          Preferences saved. Update anything below and resubmit to change them.
+          Preferences saved, please go to the Connect page to find people with similar preferences. You may resubmit preferences to change them.
         </div>
       {/if}
 
