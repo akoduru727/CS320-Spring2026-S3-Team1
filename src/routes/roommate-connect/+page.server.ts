@@ -3,13 +3,14 @@ import type { PageServerLoad, Actions } from "./$types";
 
 type PreferenceRecord = {
   tenant: string;
-  organization: number;
-  noise: number;
-  cleanliness: number;
+  organization: number | null;
+  noise: number | null;
+  cleanliness: number | null;
   sleep_schedule: string | null;
-  pets: boolean;
-  smoking: boolean;
-  overnight_guests: boolean;
+  pets: boolean | null;
+  smoking: boolean | null;
+  overnight_guests: boolean | null;
+  cost_preference: string | null;
   name: string;
   email: string;
 };
@@ -19,6 +20,29 @@ type FriendRequest = {
   sender_id: string;
   receiver_id: string;
   status: "pending" | "accepted" | "declined";
+};
+
+type TenantRecord = {
+  id: string;
+  name: string;
+  email: string;
+  roommate_group_id: string | null;
+  group_leader: boolean;
+};
+
+type GroupInvite = {
+  id: string;
+  group_id: string;
+  tenant_id: string;
+  invited_by: string;
+  status: "pending" | "declined";
+};
+
+export type GroupData = {
+  group_id: string;
+  leader_id: string;
+  members: TenantRecord[];
+  pendingInvites: GroupInvite[];
 };
 
 const isAdjacentLevelMatch = (currentLevel: number, candidateLevel: number) => Math.abs(currentLevel - candidateLevel) <= 1;
@@ -37,7 +61,7 @@ const isRoommateMatch = (current: PreferenceRecord, candidate: PreferenceRecord)
     isExactMatch(current.sleep_schedule, candidate.sleep_schedule) &&
     isExactMatch(current.pets, candidate.pets) &&
     isExactMatch(current.smoking, candidate.smoking) &&
-    isExactMatch(current.overnight_guests, candidate.overnight_guests)
+    isExactMatch(current.overnight_guests, candidate.overnight_guests) 
   );
 };
 
@@ -51,7 +75,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const { data: preferences, error: prefError } = await locals.supabase
     .from("preferences")
-    .select("tenant, organization, noise, cleanliness, sleep_schedule, pets, smoking, overnight_guests");
+    .select("tenant, organization, noise, cleanliness, sleep_schedule, pets, smoking, overnight_guests, cost_preferences");
 
   if (prefError || !preferences) {
     return { roommateMatches: [], friendRequests: [] };
@@ -60,7 +84,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   const currentTenantPreferences = preferences.find(({ tenant }) => tenant === user.id);
 
   if (!currentTenantPreferences) {
-    return { roommateMatches: [], friendRequests: [] };
+    return { roommateMatches: [], friendRequests: [], currentTenant: null, group: null, myInvites: [] };
   }
 
   const roommateMatches = preferences.filter((candidate) =>
@@ -75,7 +99,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     .in("id", matchedIds);
 
   if (tenantError) {
-    return { roommateMatches: [], friendRequests: [] };
+    return { roommateMatches: [], friendRequests: [], currentTenant: null, group: null, myInvites: [] };
   }
 
   const enrichedMatches = roommateMatches.map((match) => {
@@ -99,6 +123,8 @@ export const load: PageServerLoad = async ({ locals }) => {
     friendRequests: (friendRequests ?? []) as FriendRequest[],
   };
 };
+
+
 
 export const actions: Actions = {
   send: async ({ request, locals }) => {

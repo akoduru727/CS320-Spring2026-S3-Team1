@@ -125,7 +125,7 @@
       {/if}
 
       {#if incomingRequests.length === 0 && acceptedFriends.length === 0}
-        <p class="text-s text-zinc-400 px-5 py-6">No friends yet, send a request to a roommate match!</p>
+        <p class="text-s text-zinc-400 px-5 py-6">No friends yet, send a friend request to a roommate match!</p>
       {/if}
 
     </div>
@@ -135,7 +135,7 @@
   <main class="flex-1 overflow-y-auto px-6 py-8">
     <div class="mb-8">
       <h1 class="text-xl font-medium text-zinc-800">Connect</h1>
-      <p class="text-zinc-500 mt-1">Students with similar living preferences as yours</p>
+      <p class="text-zinc-500 mt-1">People with similar living preferences as yours</p>
     </div>
 
     {#if roommateMatches.length === 0}
