@@ -15,6 +15,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
   if (error) return redirect(303, "/");
 
+  const { error: viewsError } = await locals.supabase
+    .from("listings")
+    .update({ views: data.views + 1 })
+    .eq("id", data.id);
+
+  if (viewsError) console.error(viewsError);
+
   const { data: tenantRow, error: tenantError } = await locals.supabase
     .from("tenants")
     .select("favorite_houses")
