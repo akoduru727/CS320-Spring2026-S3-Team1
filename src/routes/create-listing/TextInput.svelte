@@ -18,8 +18,6 @@
     pattern, 
     type = "text" 
   }: Props = $props();
-
-  const inputName = field ?? name;
 </script>
 
 
@@ -28,7 +26,7 @@
     {name}{required ? "*" : ""}
   </p>
   <input 
-    name={inputName}
+    name={field ?? name}
     {required} 
     {placeholder} 
     {pattern}
