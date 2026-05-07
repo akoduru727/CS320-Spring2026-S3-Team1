@@ -1,27 +1,46 @@
-<script lang="ts">
-  import Card from "$lib/components/Card.svelte";
-  import Progress from "$lib/components/Progress.svelte";
-	import Preference from "./Preference.svelte";
-  import { SquarePen } from "@lucide/svelte";
-  import Avatar from '$lib/components/Avatar.svelte'
-
-  let profile = {
-    avatarUrl: '',
-    firstName: 'Amanda'
-  }
-
+	<script lang="ts">
+	  import { onMount } from "svelte";
+	  import Card from "$lib/components/Card.svelte";
+	  import Progress from "$lib/components/Progress.svelte";
+		import Preference from "./Preference.svelte";
+	  import Avatar from "$lib/components/Avatar.svelte";
+	
   const { data, form } = $props();
 
+  const isTenantMode = $derived(data.mode === "tenant");
   const hasSavedPreferences = $derived(Boolean(data.preferences));
+  const hasName = $derived(Boolean((data.profileName ?? "").trim()));
+  const showNameSaved = $derived(data.saved === "name");
+  const showPreferencesSaved = $derived(data.saved === "preferences");
 
-  let organization = $state(data.preferences?.organization ?? 0);
-  let cleanliness = $state(data.preferences?.cleanliness ?? 0);
-  let noise = $state(data.preferences?.noise ?? 0);
-  let sleep = $state(data.preferences?.sleep_schedule ?? "no_preference");
-  let pets = $state(Boolean(data.preferences?.pets));
-  let smoking = $state(Boolean(data.preferences?.smoking));
-  let overnight = $state(Boolean(data.preferences?.overnight_guests));
-  let cost_preference = $state(data.preferences?.cost_preference ?? "no_preference");
+  let organization = $state(0);
+  let cleanliness = $state(0);
+  let noise = $state(0);
+  let sleep = $state("no_preference");
+  let pets = $state(false);
+  let smoking = $state(false);
+  let overnight = $state(false);
+  let cost_preference = $state("no_preference");
+  let name = $state("");
+
+  $effect(() => {
+    organization = data.preferences?.organization ?? 0;
+    cleanliness = data.preferences?.cleanliness ?? 0;
+    noise = data.preferences?.noise ?? 0;
+    sleep = data.preferences?.sleep_schedule ?? "no_preference";
+    pets = Boolean(data.preferences?.pets);
+    smoking = Boolean(data.preferences?.smoking);
+    overnight = Boolean(data.preferences?.overnight_guests);
+    cost_preference = data.preferences?.cost_preference ?? "no_preference";
+    name = data.profileName ?? "";
+  });
+
+  onMount(() => {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("saved")) return;
+    url.searchParams.delete("saved");
+    window.history.replaceState({}, "", url);
+  });
 </script>
 
 <div class="flex-1 overflow-y-auto">
@@ -32,28 +51,81 @@
           Profile
         </h1>
         <p class="text-zinc-600">
-          Manage your profile and roommate preferences.
+          {isTenantMode ? "Manage your profile and roommate preferences." : "Manage your profile details."}
         </p>
       </div>
-
-      <button class="bg-zinc-900 hover:bg-zinc-800 transition-colors text-zinc-100 text-sm p-2 flex items-center gap-2 rounded">
-        <SquarePen size={16} />
-        <span>
-          Edit Profile
-        </span>
-      </button>
     </div>
 
-    <Card class="flex gap-6">
-     <Avatar
-       avatarUrl={profile.avatarUrl}
-       firstName={profile.firstName}
-    />
-      <!--<div class="w-24 h-24 rounded-full bg-zinc-200">Text</div>-->
-    </Card>
+    <form method="POST" action="?/updateName">
+      <Card class="space-y-4 bg-white/80 backdrop-blur shadow-sm">
+	        <div class="flex items-start justify-between gap-4">
+		          <div class="flex items-center gap-5">
+		            <Avatar
+		              avatarUrl=""
+		              firstName={data.profileName || "A"}
+		            />
+	            <div class="space-y-1">
+	              <h2 class="text-xl font-semibold tracking-tighter">Display Name</h2>
+	              <p class="text-sm text-zinc-600">
+	                {isTenantMode
+	                  ? "Landlords will see this name on applications."
+	                  : "Tenants will see this name on your listings and applications."}
+	              </p>
+	            </div>
+	          </div>
+	          <div class="space-y-1">
+	            <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Status</p>
+	            {#if hasName}
+	              <span class="rounded-full bg-green-600/10 px-2.5 py-1 text-xs font-medium text-green-900">
+	                Set
+	              </span>
+	            {:else}
+	              <span class="rounded-full bg-red-600/10 px-2.5 py-1 text-xs font-medium text-red-900">
+	                Required
+	              </span>
+	            {/if}
+	          </div>
+	        </div>
 
-    <form method="POST" action="?/create">
-    <Card class="space-y-6">
+        {#if showNameSaved}
+          <div class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-900">
+            Name saved.
+          </div>
+        {/if}
+
+        {#if data.profileNameMessage}
+          <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {data.profileNameMessage}
+          </div>
+        {/if}
+
+        {#if form?.nameFormMessage}
+          <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {form.nameFormMessage}
+          </div>
+        {/if}
+
+        <label class="block space-y-1">
+          <p class="text-sm font-medium text-zinc-700">Name</p>
+          <input
+            name="name"
+            bind:value={name}
+            autocomplete="name"
+            class="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm"
+            placeholder="e.g. Jane Doe"
+          />
+        </label>
+
+	        <div class="flex justify-end">
+	          <button type="submit" class="bg-zinc-900 hover:bg-zinc-700 transition-colors text-zinc-100 text-sm font-medium px-4 py-2 rounded">
+	            Save Name
+	          </button>
+	        </div>
+      </Card>
+	    </form>
+    {#if isTenantMode}
+		    <form method="POST" action="?/create">
+    <Card class="space-y-6 bg-white/80 backdrop-blur shadow-sm">
       <h2 class="text-xl font-semibold tracking-tighter">
         Roommate Preferences
       </h2>
@@ -64,7 +136,7 @@
         </div>
       {/if}
 
-      {#if hasSavedPreferences}
+      {#if showPreferencesSaved}
         <div class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-900">
           Preferences saved, please go to the Connect page to find people with similar preferences. You may resubmit preferences to change them.
         </div>
@@ -160,7 +232,8 @@
         </button>
       </div>
     </Card>
-    </form>
+	    </form>
+    {/if}
 
   </section>
 </div>
