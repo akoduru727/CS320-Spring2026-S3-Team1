@@ -1,7 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 import { fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
-import { getListingImages } from "$lib/server/listing-images";
+import { getListingImages, type ListingImage } from "$lib/server/listing-images";
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   if (locals.accountType !== "tenant") return redirect(303, "/");
@@ -15,6 +15,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
   if (error) return redirect(303, "/");
 
+  const { error: viewsError } = await locals.supabase
+    .from("listings")
+    .update({ views: data.views + 1 })
+    .eq("id", data.id);
+
+  if (viewsError) console.error(viewsError);
+
   const { data: tenantRow, error: tenantError } = await locals.supabase
     .from("tenants")
     .select("favorite_houses")
@@ -23,7 +30,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   if (tenantError) console.error(tenantError);
   const favoriteIds = (tenantRow?.favorite_houses ?? []) as string[];
 
-  let listingImages = [];
+  let listingImages: ListingImage[] = [];
 
   try {
     listingImages = await getListingImages(locals.supabase, params.slug);
@@ -31,10 +38,20 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     console.error(imagesError);
   }
 
+  const { data: applications } = await locals.supabase
+    .from("applications")
+    .select("listing")
+    .eq("tenant", locals.user.id);
+
+  const hasApplied = (applications ?? []).some(
+    (a) => a.listing === params.slug
+  );
+
   return {
     listing: data,
     listingImages,
     isFavorite: favoriteIds.includes(params.slug),
+    hasApplied,
   };
 };
 
@@ -74,4 +91,6 @@ export const actions: Actions = {
 
     return redirect(303, url.pathname);
   }
+
+  
 };

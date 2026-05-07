@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   // TODO: propagate this as a displayed error message
   if (error) {
     console.log("[error] failed to fetch listings for landlord");
-    return { listings: [] }
+    return { listings: [], numPendingApplications: NaN, numUnreadMessages: NaN };
   }
 
   const listingIds = (data ?? [])
@@ -39,6 +39,33 @@ export const load: PageServerLoad = async ({ locals }) => {
     console.error(imagesError);
   }
 
+  // count pending applications
+  let numPendingApplications = NaN;
+  const pendingApplicationsResult = await locals.supabase
+    .from("applications")
+    .select("status", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  if (pendingApplicationsResult.error || pendingApplicationsResult.count === null) {
+    console.log(`[error] landlord pending applications: ${pendingApplicationsResult.error?.message}`);
+  } else {
+    numPendingApplications = pendingApplicationsResult.count;
+  }
+
+  // count unread messages
+  let numUnreadMessages = NaN;
+  const unreadMessagesResult = await locals.supabase
+    .from("message")
+    .select("id, conversation!inner(chat_participants)", { count: "exact", head: true })
+    .eq("is_read", false)
+    .contains("conversation.chat_participants", [locals.user.id]);
+
+  if (unreadMessagesResult.error || unreadMessagesResult.count === null) {
+    console.log(`[error] landlord unread messages: ${unreadMessagesResult.error?.message}`);
+  } else {
+    numUnreadMessages = unreadMessagesResult.count;
+  }
+
   return {
     listings: (data ?? []).map((listing) => {
       const coverImageUrl = coverUrlByListingId.get(listing.id);
@@ -48,7 +75,9 @@ export const load: PageServerLoad = async ({ locals }) => {
         imageSrc: resolveListingImage(coverImageUrl),
         isPlaceholder: isPlaceholderImage(coverImageUrl),
       };
-    })
+    }),
+    numPendingApplications,
+    numUnreadMessages,
   };
 };
 
@@ -58,7 +87,7 @@ export const actions: Actions = {
     if (!locals.user) return;
 
     const listingId = await request.text();
-    const { data, error } = await locals.supabase
+    const { error } = await locals.supabase
       .from("listings")
       .delete()
       .eq("landlord", locals.user.id)
