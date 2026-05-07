@@ -17,10 +17,11 @@
   let organization = $state(data.preferences?.organization ?? 0);
   let cleanliness = $state(data.preferences?.cleanliness ?? 0);
   let noise = $state(data.preferences?.noise ?? 0);
-  let sleep = $state(data.preferences?.sleep_schedule ?? "flexible");
+  let sleep = $state(data.preferences?.sleep_schedule ?? "no_preference");
   let pets = $state(Boolean(data.preferences?.pets));
   let smoking = $state(Boolean(data.preferences?.smoking));
   let overnight = $state(Boolean(data.preferences?.overnight_guests));
+  let cost_preference = $state(data.preferences?.cost_preference ?? "no_preference");
 </script>
 
 <div class="flex-1 overflow-y-auto">
@@ -72,7 +73,7 @@
       <div class="space-y-3">
         <Preference
           name="Organization"
-          description="How organized are you with shared spaces?"
+          description="How important is organization in a shared space to you?"
         />
         <Progress level={organization} max={5} onChange = {(val) => organization = val}/>
       </div>
@@ -105,12 +106,18 @@
       >
         <div class="space-x-1">
           <select bind:value={sleep} name="sleep" id="sleep" class="tracking-tighter">
-            <option value = "early">Early</option>
-            <option value = "late">Late</option>
-            <option value = "flexible">Flexible</option>
+            <option value = "no_preference">No Preference</option>            
+            <option value = "before_nine">Before 9 PM</option>
+            <option value = "nine_to_ten">9 PM to 10 PM</option>
+            <option value = "ten_to_eleven">10 PM to 11 PM</option>
+            <option value = "eleven_to_twelve">11 PM to 12 AM</option>
+            <option value = "later_than_twelve">Later than 12 AM</option>
+            
           </select>
         </div>
       </Preference>
+
+      <!-- sleep-time type values: before_nine, nine_to_ten, ten_to_eleven, eleven_to_twelve, later_than_twelve, no_preference -->
 
       <Preference
         name="Pet Friendly"
@@ -132,6 +139,21 @@
       >
         <input type="checkbox" name = "overnight" value = "true" bind:checked={overnight}>
       </Preference>
+
+      <Preference
+        name="Monthly Cost Preference"
+        description="How much are you willing to pay per month for rent individually?"
+      >
+        <div class="space-x-1">
+          <select bind:value={cost_preference} name="cost_preference" id="cost_preference" class="tracking-tighter">
+            <option value = "no_preference">No Preference</option>
+            <option value = "under_1000">Under $1000</option>
+            <option value = "under_1200">Under $1200</option>
+            <option value = "under_1500">Under $1500</option>
+          </select>
+        </div>
+      </Preference>
+
       <div class="flex justify-center">
         <button type="submit" class="bg-red-800 hover:bg-red-700 cursor-pointer transition-colors text-zinc-100 text-sm font-medium px-4 py-2 rounded ">
             {hasSavedPreferences ? "Update Preferences" : "Submit Preferences"}
