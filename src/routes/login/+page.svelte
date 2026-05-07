@@ -7,7 +7,7 @@
 <div class="flex-1 flex items-center justify-center px-4">
   <Card class="min-w-md space-y-6 p-10">
     <div class="space-y-1 text-center">
-      <h1 class="text-2xl font-semibold tracking-tighter">Sign in</h1>
+      <h1 class="text-2xl font-semibold tracking-tighter">Sign In</h1>
       <p class="text-sm text-zinc-600">Use your Google account to continue.</p>
     </div>
 

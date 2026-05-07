@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const { data, error } = await locals.supabase
     .from("preferences")
-    .select("organization, noise, cleanliness, sleep_schedule, pets, smoking, overnight_guests")
+    .select("organization, noise, cleanliness, sleep_schedule, pets, smoking, overnight_guests, cost_preference")
     .eq("tenant", locals.user.id)
     .maybeSingle();
 
@@ -76,7 +76,10 @@ export const actions: Actions = {
 
     const smokingResult = formData.get("smoking") === "true";
 
-    const overnightResult = formData.get("overnight") === "true"
+    const overnightResult = formData.get("overnight") === "true";
+    
+    const costPreferenceResult = getString(formData, "cost_preference");
+
 
     const payload = {
       tenant : user.id,
@@ -86,7 +89,8 @@ export const actions: Actions = {
       sleep_schedule : sleepScheduleResult,
       pets : petsResult,
       smoking : smokingResult,
-      overnight_guests : overnightResult
+      overnight_guests : overnightResult,
+      cost_preference : costPreferenceResult
     }
     
     const { error } = await locals.supabase.from("preferences").upsert(payload, {onConflict : 'tenant'})

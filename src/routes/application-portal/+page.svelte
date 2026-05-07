@@ -101,6 +101,27 @@
                 {#if app.message}
                   <p class="text-sm text-zinc-700 whitespace-pre-wrap">{app.message}</p>
                 {/if}
+
+                <!-- LANDLORD INFO -->
+                {#if app.application_type === "contact"}
+                  <div class="text-sm text-zinc-700">
+                    <p><strong>Email:</strong> {app.contact_email}</p>
+
+                    {#if app.contact_phone}
+                      <p><strong>Phone:</strong> {app.contact_phone}</p>
+                    {/if}
+                  </div>
+                {/if}
+
+                {#if app.application_type === "pdf"}
+                  <a
+                    href={app.application_pdf_url}
+                    target="_blank"
+                    class="text-red-600 hover:underline text-sm"
+                  > 
+                    View Application PDF
+                  </a>
+                {/if}
               </div>
             {/each}
           </div>
@@ -155,7 +176,7 @@
                 class="rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-2 text-sm font-medium text-zinc-100"
                 disabled={!data.dbReady || tenantListings.length === 0 || !selectedListingId}
               >
-                Submit application
+                Submit Application
               </button>
             </div>
           </form>
