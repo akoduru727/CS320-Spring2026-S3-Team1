@@ -6,6 +6,8 @@
   import ChatPage from "./ChatPage.svelte";
   //import {recentContacts, friendContacts as initialFriendContacts, landlordContacts, requestContacts as initialRequestContacts, type Tab} from "./tempdata";
   import {Users, House, Mail} from "@lucide/svelte";
+  import {onMount} from "svelte";
+  import {supabase} from "$lib/supabase";
   type Contact = {id: string, name: string, pinned?: boolean};
   type Tab = "friends" | "landlords" | "requests";
   export let data:{
@@ -33,7 +35,15 @@
   $: shownContacts = (selectedTab === "friends" ? friendContacts : selectedTab === "landlords" ? landlordContacts : requestContacts) as Contact[];
   $: filteredContacts = shownContacts.filter(contact => contact.name.toLowerCase().includes(search.toLowerCase()));
   $: recentContacts = [...(roommateGroup.length > 0 ? [{id: "roommate-group", name: "Roommate Group", pinned: true, conversationId: data.roommateConversationId}] : []), 
-    ...friendContacts];
+    ...[...friendContacts, ...landlordContacts]
+    .filter(contact => conversations.some(c => (c.chat_participants as string[]).includes(contact.id)))
+    .sort((a,b) => {
+        const aConvo = conversations.find(c => (c.chat_participants as string[]).includes(a.id));
+        const bConvo = conversations.find(c => (c.chat_participants as string[]).includes(b.id));
+        const aLastMsg = messages.filter(m => m.conversation_id === aConvo?.id).at(-1)?.created_at ?? "";
+        const bLastMsg = messages.filter(m => m.conversation_id === bConvo?.id).at(-1)?.created_at ?? "";
+        return bLastMsg.localeCompare(aLastMsg);
+    })];
   $: unreadCountPerContact = Object.fromEntries([...friendContacts, ...landlordContacts].map(contact => {
     const convo = conversations.find(c => (c.chat_participants as string[]).includes(contact.id));
     const unreadCount = convo ? messages.filter(m => m.conversation_id === convo.id && !m.is_read && m.sender !== data.currentUserId).length : 0;
@@ -48,31 +58,46 @@
     if (contact.conversationId) {
         selectedConversationId = contact.conversationId;
         console.log("Using existing conversationId:", contact.conversationId);
-        return;
+        //return;
     }
-    const existingConversation = conversations.find(convo => (convo.chat_participants as string[]).includes(contact.id));
-    console.log("Existing conversation:", existingConversation);
-    if (existingConversation){
-        selectedConversationId = existingConversation.id;
-        console.log("Found existing conversation:", existingConversation.id);
-        return;
+    else{
+        const existingConversation = conversations.find(convo => (convo.chat_participants as string[]).includes(contact.id));
+        console.log("Existing conversation:", existingConversation);
+        if (existingConversation){
+            selectedConversationId = existingConversation.id;
+            console.log("Found existing conversation:", existingConversation.id);
+            //return;
+        }
+        else{
+            //Form Action to create new conversation if one doesn't exist
+            console.log("Fetching createConversation action...");
+            const formData = new FormData();
+            formData.append("contactId", contact.id);
+            const response = await fetch("?/createConversation", { method: "POST", body: formData, credentials: "include" });
+            const result = await response.json();
+            console.log("Result:", result);
+            
+            //Parsing the data string
+            const parsedData = JSON.parse(result.data);
+            const conversationId = parsedData[1];
+        
+            if (conversationId){
+                console.log("Creating new conversation...");
+                selectedConversationId = conversationId;
+                conversations = [...conversations, {
+                    id: conversationId, chat_participants: [data.currentUserId, contact.id], messages_id: [] }];
+            }
+        }
     }
-    //Form Action to create new conversation if one doesn't exist
-    console.log("Fetching createConversation action...");
-    const formData = new FormData();
-    formData.append("contactId", contact.id);
-    const response = await fetch("?/createConversation", { method: "POST", body: formData });
-    const result = await response.json();
-    console.log("Result:", result);
-    
-    //Parsing the data string
-    const parsedData = JSON.parse(result.data);
-    const conversationId = parsedData[1];
-    if (conversationId){
-        console.log("Creating new conversation...");
-        selectedConversationId = conversationId;
-        conversations = [...conversations, {
-            id: conversationId, chat_participants: [data.currentUserId, contact.id], messages_id: [] }];
+    if (selectedConversationId){
+        const formData = new FormData();
+        formData.append("conversationId", selectedConversationId);
+        const markResponse = await fetch("?/markAsRead", { method: "POST", body: formData, credentials: "include" });
+        const markResult = await markResponse.json();
+        console.log("markAsRead result:", markResult);
+        messages = messages.map(m => 
+            (m.conversation_id === selectedConversationId && m.sender !== data.currentUserId) ? {...m, is_read: true} : m
+        );
     }
   }
   function closeChat(){
@@ -87,7 +112,19 @@
   function rejectRequest(contact: Contact){
     console.log("Rejecting request from", contact.name);
     requestContacts = requestContacts.filter(c => c.id !== contact.id);
-}
+  }
+  onMount(() => {
+    const channel = supabase.channel("new-messages").on("postgres_changes",{event: "INSERT", schema: "public", table: "message"}, 
+        (payload) => {
+            const newMessage = payload.new as typeof messages[0];
+            const isRelevant = conversations.some(c => c.id === newMessage.conversation_id);
+            if (isRelevant){
+                messages = [...messages, newMessage];
+            }
+        }
+    ).subscribe();
+    return () => supabase.removeChannel(channel);
+  });
 </script>
 
 <div class = "flex-1 flex overflow-hidden">

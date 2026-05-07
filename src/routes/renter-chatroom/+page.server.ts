@@ -49,10 +49,10 @@ export const load: PageServerLoad = async ({locals}) =>{
         }
     }
     const { data: friendConversations } = await locals.supabase
-        .from("conversation").select("id, chat_participants, messages_id").contains("chat_participants", [userId]).in("chat_participants", friendsIds);
+        .from("conversation").select("id, chat_participants, messages_id").contains("chat_participants", [userId]);
     
     const { data: landlordConversations } = await locals.supabase
-        .from("conversation").select("id, chat_participants, messages_id").contains("chat_participants", [userId]).in("chat_participants", landlordIds);
+        .from("conversation").select("id, chat_participants, messages_id").contains("chat_participants", [userId]);
     
     const { data: friendMessages } = await locals.supabase
         .from("message").select("id, created_at, sender, messages_content, conversation_id, is_read, read_at").in("conversation_id", friendConversations?.map(convo => convo.id) ?? []);
@@ -105,5 +105,15 @@ export const actions: Actions = {
             .from("message").select("*").eq("conversation_id", conversationId).order("created_at", {ascending: true});
         if (error) return fail(500, {message: error.message});
         return {json: JSON.stringify({messages: data ?? [], currentUserId: locals.user.id})};
+    },
+    markAsRead: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, { message: "Unauthorized" });
+        const formData = await request.formData();
+        const conversationId = formData.get("conversationId") as string;
+        if (!conversationId) return fail(400, {message: "Missing conversation ID"});
+        const { error } = await locals.supabase
+            .from("message").update({ is_read: true, read_at: new Date().toISOString() }).eq("conversation_id", conversationId).eq("is_read", false).neq("sender", locals.user.id);
+        if (error) return fail(500, { message: error.message });
+        return { success: true };
     }
 }

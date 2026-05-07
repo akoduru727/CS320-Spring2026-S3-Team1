@@ -52,6 +52,16 @@ export const actions: Actions = {
             .from("message").select("*").eq("conversation_id", conversationId).order("created_at", {ascending: true});
         if (error) return fail(500, {message: error.message});
         return {json: JSON.stringify({messages: data ?? [], currentUserId: locals.user.id})};
+    },
+    markAsRead: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, { message: "Unauthorized" });
+        const formData = await request.formData();
+        const conversationId = formData.get("conversationId") as string;
+        if (!conversationId) return fail(400, { message: "Missing conversation ID" });
+        const { error } = await locals.supabase
+            .from("message").update({ is_read: true, read_at: new Date().toISOString() }).eq("conversation_id", conversationId).eq("is_read", false).neq("sender", locals.user.id);
+        if (error) return fail(500, { message: error.message });
+        return { success: true };
     }
 }
 

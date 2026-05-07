@@ -34,7 +34,7 @@
     async function loadMessage(){
         const formData = new FormData();
         formData.append("conversationId", conversationId);
-        const response = await fetch("?/loadMessage", { method: "POST", body: formData });
+        const response = await fetch("?/loadMessage", { method: "POST", body: formData, credentials: "include" });
         const result = await response.json();
         console.log("loadMessage result:", result);
         if (result.type === "failure") {
@@ -57,7 +57,7 @@
         const formData = new FormData();
         formData.append("conversationId", conversationId);
         formData.append("messageContent", trimmed);
-        const response = await fetch("?/sendMessage", { method: "POST", body: formData });
+        const response = await fetch("?/sendMessage", { method: "POST", body: formData, credentials: "include" });
         const result = await response.json();
         if (result.type === "failure") {
             console.error("Error sending message: ", result.data);

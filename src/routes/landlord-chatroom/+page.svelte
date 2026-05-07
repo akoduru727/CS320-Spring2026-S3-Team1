@@ -27,7 +27,7 @@
     return [contact.id, unreadCount];
   }));
 
-  function openChat(contact: Contact){
+  async function openChat(contact: Contact){
     selectedContact = contact;
     //Find existing conversation with this contact
     const conversation = conversations.find(convo => 
@@ -35,6 +35,14 @@
     selectedConversationId = conversation?.id ?? null;
     console.log("conversation found:", conversation);
     console.log("all conversations:", conversations);
+    if (conversation){
+        const formData = new FormData();
+        formData.append("conversationId", conversation.id);
+        await fetch("?/markAsRead", { method: "POST", body: formData });
+        messages = messages.map(m => 
+            (m.conversation_id === conversation.id && m.sender !== data.currentUserId) ? {...m, is_read: true} : m
+        );
+    }
   }
   function closeChat(){
     selectedContact = null;
