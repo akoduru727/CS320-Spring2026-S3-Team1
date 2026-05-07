@@ -6,6 +6,10 @@
         date: Date;
     };
     const { senderName, text, user, date}: Props = $props();
+    function formatDate(d: Date): string {
+        return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ' at ' 
+        + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
 </script>
 
 {#if user === "other"}
@@ -17,11 +21,14 @@
                     {senderName[0].toUpperCase()}
                 </span>
             </div>
-            <div>
-                <p class= "text-base font-semibold text-black">{senderName}</p>
+            <div class="flex flex-col items-start">
+                <div class="flex items-baseline gap-2 mb-1">
+                    <p class= "text-base font-semibold text-black">{senderName}</p>
+                    <p class="text-xs text-zinc-500">{formatDate(date)}</p>
+                </div>
+                <p class="rounded-2xl border border-zinc-400 bg-white px-3 py-2 text-black break-words">{text}</p>
             </div>
-            <p class="mt-1 rounded-xl border border-zinc-400 bg-white px-4 py-3 text-black break-words">{text}</p>
-            <p class = "mt-1 text-sm text-zinc-500">{date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+            
         </div>
     </div>
 {:else if user === "self"}
@@ -33,11 +40,13 @@
                     Y
                 </span>
             </div>
-            <div>
-                <p class= "text-base font-semibold text-black">{senderName}</p>
+            <div class="flex flex-col items-end">
+                <div class="flex items-baseline gap-2 mb-1">
+                    <p class="text-xs text-zinc-500">{formatDate(date)}</p>
+                    <p class= "text-base font-semibold text-black">{senderName}</p>
+                </div>
+                <p class="rounded-2xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-white break-words">{text}</p>
             </div>
-            <p class="mt-1 rounded-xl border border-zinc-400 bg-white px-4 py-3 text-black break-words">{text}</p>
-            <p class = "mt-1 text-sm text-zinc-500">{date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
         </div>
     </div>
 {/if}

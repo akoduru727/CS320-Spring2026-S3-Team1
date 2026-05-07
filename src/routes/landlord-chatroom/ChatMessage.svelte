@@ -7,8 +7,9 @@
   }
   const { senderName, text, user, date }: Props = $props();
 
-  function formatTime(d: Date): string {
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  function formatDate(d: Date): string {
+    return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ' at ' 
+    + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 </script>
 
@@ -22,10 +23,15 @@
 
   <!-- Bubble -->
   <div class="flex flex-col {user === 'self' ? 'items-end' : 'items-start'} max-w-[70%]">
-    <p class="text-xs text-zinc-500 mb-1">{senderName}</p>
-    <div class="rounded-2xl px-4 py-2 {user === 'self' ? 'bg-zinc-800 text-white' : 'bg-white text-zinc-900'}">
-      <p class="text-sm">{text}</p>
+    <div class="flex items-baseline gap-2 mb-1">
+      {#if user === 'self'}
+        <p class="text-xs text-zinc-500">{formatDate(date)}</p>
+        <p class="text-base font-semibold text-black">{senderName}</p>
+      {:else}
+        <p class="text-base font-semibold text-black">{senderName}</p>
+        <p class="text-xs text-zinc-500">{formatDate(date)}</p>
+      {/if}
     </div>
-    <p class="text-xs text-zinc-400 mt-1">{formatTime(date)}</p>
+    <p class="rounded-2xl border px-3 py-2 break-words {user === 'self' ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-white text-black border-zinc-400'}">{text}</p>
   </div>
 </div>
