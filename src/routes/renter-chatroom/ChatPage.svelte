@@ -64,7 +64,6 @@
             return;
         }
         newMessage = "";
-        await loadMessage();
         await scrollToBottom();
     }
     onMount(() => {

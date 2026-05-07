@@ -28,6 +28,7 @@
     const unreadCount = convo ? messages.filter(m => m.conversation_id === convo.id && !m.is_read && m.sender !== data.currentUserId).length : 0;
     return [contact.id, unreadCount];
   }));
+  $: totalUnread = Object.values(unreadCountPerContact).reduce((sum, count) => sum + count, 0);
 
   async function openChat(contact: Contact){
     selectedContact = contact;
@@ -62,6 +63,13 @@
         const newMessage = payload.new as typeof messages[0];
         const isRelevant = conversations.some(c => c.id === newMessage.conversation_id);
         if (isRelevant){
+            //If chat is open:
+                if (newMessage.conversation_id === selectedConversationId && newMessage.sender !== data.currentUserId) {
+                    newMessage.is_read = true;
+                    const formData = new FormData();
+                    formData.append("conversationId", newMessage.conversation_id);
+                    fetch("?/markAsRead", { method: "POST", body: formData, credentials: "include" });
+                }
             messages = [...messages, newMessage];
         }
     }).subscribe();
@@ -78,7 +86,12 @@
                     
                     <!-- Recent Contacts-->
                     <div class = "flex-1 space-y-3 overflow-y-auto">
-                        <p class="text-sm font-semibold text-white uppercase tracking-wider mb-2 px-1">Recent Contacts</p>
+                        <p class="text-sm font-semibold text-white uppercase tracking-wider mb-2 px-1">
+                            Recent Contacts
+                            {#if totalUnread > 0}
+                                <span class="ml-2 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs rounded-full inline-flex items-center justify-center">{totalUnread}</span>
+                            {/if}
+                        </p>
                         <div class="border-b border-white mb-3"></div>
 
                         {#each contacts as contact (contact.id)}

@@ -147,6 +147,13 @@
             const newMessage = payload.new as typeof messages[0];
             const isRelevant = conversations.some(c => c.id === newMessage.conversation_id);
             if (isRelevant){
+                //If chat is open:
+                if (newMessage.conversation_id === selectedConversationId && newMessage.sender !== data.currentUserId) {
+                    newMessage.is_read = true;
+                    const formData = new FormData();
+                    formData.append("conversationId", newMessage.conversation_id);
+                    fetch("?/markAsRead", { method: "POST", body: formData, credentials: "include" });
+                }
                 messages = [...messages, newMessage];
             }
         }
