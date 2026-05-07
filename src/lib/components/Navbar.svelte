@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import { totalUnreadCount } from "$lib/components/unreadStore";
   import {
     FileText,
     Home,
@@ -14,9 +15,10 @@
   interface Props {
     accountType: "tenant" | "landlord" | null,
     isAuthenticated: boolean,
+    totalUnread?: number;
   };
 
-  const { accountType, isAuthenticated }: Props = $props();
+  const { accountType, isAuthenticated, totalUnread = 0 }: Props = $props();
 
   type Route = {
     name: string;
@@ -33,7 +35,7 @@
         { name: "Search", href: "/search", icon: Search },
         { name: "Profile", href: "/profile", icon: User },
         { name: "Connect", href: "/connect", icon: Users },
-        { name: "Chats", href: "/chats", icon: MessageCircle },
+        { name: "Chats", href: "/renter-chatroom", icon: MessageCircle },
         { name: "Favorites", href: "/favorites", icon: Star },
         { name: "Application Portal", href: "/application-portal", icon: FileText },
       ];
@@ -45,7 +47,7 @@
         { name: "Profile", href: "/profile", icon: User },
         { name: "Create Listing", href: "/create-listing", icon: PlusSquare },
         { name: "Application Portal", href: "/application-portal", icon: FileText },
-        { name: "Chats", href: "/chats", icon: MessageCircle },
+        { name: "Chats", href: "/landlord-chatroom", icon: MessageCircle },
       ];
     }
 
@@ -74,6 +76,11 @@
         >
           <Icon size={16} />
           <span>{name}</span>
+          {#if name === "Chats" && $totalUnreadCount > 0}
+          <span class="min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            {$totalUnreadCount}
+          </span>
+          {/if}
         </a>
       {/each}
     </div>
