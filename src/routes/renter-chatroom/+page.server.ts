@@ -74,6 +74,20 @@ export const actions: Actions = {
         const formData = await request.formData();
         const contactId = formData.get("contactId") as string;
         if (!contactId) return fail(400, {message: "Missing Contact ID"}); 
+
+        //Check if user has blocked other:
+        const { data: currentTenant } = await locals.supabase
+            .from("tenants").select("blocked_friends, blocked_landlords").eq("id", locals.user.id).single();
+        const isBlockedByMe = (currentTenant?.blocked_friends ?? []).includes(contactId) || (currentTenant?.blocked_landlords ?? []).includes(contactId);
+        
+        //Check if contact has blocked current user:
+        const { data: otherTenant } = await locals.supabase
+            .from("tenants").select("blocked_friends").eq("id", contactId).single();
+        const { data: otherLandlord } = await locals.supabase
+            .from("landlords").select("blocked_accounts").eq("id", contactId).single();
+        const isBlockedByThem = (otherTenant?.blocked_friends ?? []).includes(locals.user.id) || (otherLandlord?.blocked_accounts ?? []).includes(locals.user.id);
+        if (isBlockedByMe || isBlockedByThem) return fail(403, {message: "Cannot start conversation with this user"});
+        
         const {data: existingConversations} = await locals.supabase
             .from("conversation").select("id").contains("chat_participants", [locals.user.id, contactId]).single()
         if (existingConversations) return {conversationId: existingConversations.id}
@@ -113,6 +127,90 @@ export const actions: Actions = {
         if (!conversationId) return fail(400, {message: "Missing conversation ID"});
         const { error } = await locals.supabase
             .from("message").update({ is_read: true, read_at: new Date().toISOString() }).eq("conversation_id", conversationId).eq("is_read", false).neq("sender", locals.user.id);
+        if (error) return fail(500, { message: error.message });
+        return { success: true };
+    },
+    removeFriend: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, { message: "Unauthorized" });
+        const formData = await request.formData();
+        const contactId = formData.get("contactId") as string;
+        //Remove from current user's friend list
+        const { data: tenantRow } = await locals.supabase
+            .from("tenants").select("friends").eq("id", locals.user.id).single();
+        const updatedFriends = (tenantRow?.friends ?? []).filter((id: string) => id !== contactId);
+        await locals.supabase
+            .from("tenants").update({ friends: updatedFriends }).eq("id", locals.user.id);
+        
+        //Removes current user from the other tenant's friends too
+        const { data: otherTenantRow } = await locals.supabase
+            .from("tenants").select("friends").eq("id", contactId).single();
+        const otherUpdatedFriends = (otherTenantRow?.friends ?? []).filter((id: string) => id !== locals.user!.id);
+        const { error } = await locals.supabase
+            .from("tenants").update({ friends: otherUpdatedFriends }).eq("id", contactId);
+        if (error) return fail(500, { message: error.message });
+        return { success: true };
+    },
+    removeLandlord: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, { message: "Unauthorized" });
+        const formData = await request.formData();
+        const contactId = formData.get("contactId") as string;
+        //Removes landlord from tenant's landlord contacts
+        const { data: tenantRow } = await locals.supabase
+            .from("tenants").select("landlord_contacts").eq("id", locals.user.id).single();
+        const updatedLandlordContacts = (tenantRow?.landlord_contacts ?? []).filter((id: string) => id !== contactId);
+        await locals.supabase
+            .from("tenants").update({ landlord_contacts: updatedLandlordContacts }).eq("id", locals.user.id);
+        
+        //Removes tenant from landlord's contacts too
+        const { data: landlordRow } = await locals.supabase
+            .from("landlords").select("contacts").eq("id", contactId).single();
+        const otherUpdatedContacts = (landlordRow?.contacts ?? []).filter((id: string) => id !== locals.user!.id);
+        const { error } = await locals.supabase
+            .from("landlords").update({ contacts: otherUpdatedContacts }).eq("id", contactId);
+        if (error) return fail(500, { message: error.message });
+        return { success: true };
+    },
+    blockFriend: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, { message: "Unauthorized" });
+        const formData = await request.formData();
+        const contactId = formData.get("contactId") as string;
+
+        //Removes and blocks on current user's side
+        const { data: tenantRow } = await locals.supabase
+            .from("tenants").select("friends, blocked_friends").eq("id", locals.user.id).single();
+        const updatedFriends = (tenantRow?.friends ?? []).filter((id: string) => id !== contactId);
+        const updatedBlockedFriends = [...(tenantRow?.blocked_friends ?? []), contactId];
+        await locals.supabase
+            .from("tenants").update({ friends: updatedFriends, blocked_friends: updatedBlockedFriends }).eq("id", locals.user.id);
+        
+        //Removes current user from the other tenant's friends too
+        const { data: otherTenantRow } = await locals.supabase
+            .from("tenants").select("friends").eq("id", contactId).single();
+        const otherUpdatedFriends = (otherTenantRow?.friends ?? []).filter((id: string) => id !== locals.user!.id);
+        const { error } = await locals.supabase
+            .from("tenants").update({ friends: otherUpdatedFriends }).eq("id", contactId);
+        if (error) return fail(500, { message: error.message });
+        return { success: true };
+    },
+    blockLandlord: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, { message: "Unauthorized" });
+        const formData = await request.formData();
+        const contactId = formData.get("contactId") as string;
+        //Removes and blocks on tenant's side
+        const { data: tenantRow } = await locals.supabase
+            .from("tenants").select("landlord_contacts, blocked_landlords").eq("id", locals.user.id).single();
+        const updatedLandlordContacts = (tenantRow?.landlord_contacts ?? []).filter((id: string) => id !== contactId);
+        const updatedBlockedLandlords = [...(tenantRow?.blocked_landlords ?? []), contactId];
+        await locals.supabase
+            .from("tenants").update({ landlord_contacts: updatedLandlordContacts, blocked_landlords: updatedBlockedLandlords }).eq("id", locals.user.id);
+        
+        //Removes tenant from landlord's contacts too and adds to blocked list
+        const { data: landlordRow } = await locals.supabase
+            .from("landlords").select("contacts, blocked_accounts").eq("id", contactId).single();
+        const otherUpdatedContacts = (landlordRow?.contacts ?? []).filter((id: string) => id !== locals.user!.id);
+        const otherUpdatedBlockedTenants = [...(landlordRow?.blocked_accounts ?? []), locals.user.id];
+        const { error } = await locals.supabase
+            .from("landlords").update({ contacts: otherUpdatedContacts, blocked_accounts: otherUpdatedBlockedTenants }).eq("id", contactId);
         if (error) return fail(500, { message: error.message });
         return { success: true };
     }

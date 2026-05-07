@@ -104,6 +104,34 @@
     selectedContact = null;
     selectedConversationId = null;
   }
+  async function removeFriend(contact: Contact){
+    console.log("Removing friend", contact.name);
+    const formData = new FormData();
+    formData.append("contactId", contact.id);
+    await fetch("?/removeFriend", { method: "POST", body: formData, credentials: "include" });
+    friendContacts = friendContacts.filter(c => c.id !== contact.id);
+  }
+  async function removeLandlord(contact: Contact){
+    console.log("Removing landlord", contact.name);
+    const formData = new FormData();
+    formData.append("contactId", contact.id);
+    await fetch("?/removeLandlord", { method: "POST", body: formData, credentials: "include" });
+    landlordContacts = landlordContacts.filter(c => c.id !== contact.id);
+  }
+  async function blockFriend(contact: Contact){
+    console.log("Blocking friend", contact.name);
+    const formData = new FormData();
+    formData.append("contactId", contact.id);
+    await fetch("?/blockFriend", { method: "POST", body: formData, credentials: "include" });
+    friendContacts = friendContacts.filter(c => c.id !== contact.id);
+  }
+  async function blockLandlord(contact: Contact){
+    console.log("Blocking friend", contact.name);
+    const formData = new FormData();
+    formData.append("contactId", contact.id);
+    await fetch("?/blockLandlord", { method: "POST", body: formData, credentials: "include" });
+    landlordContacts = landlordContacts.filter(c => c.id !== contact.id);
+  }
   function acceptRequest(contact: Contact){
     console.log("Accepting request from", contact.name);
     requestContacts = requestContacts.filter(c => c.id !== contact.id);
@@ -169,8 +197,14 @@
                                     type={selectedTab === "friends" ? "friend" : selectedTab === "landlords" ? "landlord" : "requests"}
                                     unreadCount={unreadCountPerContact[contact.id] ?? 0}
                                     onMessageClick={() => openChat(contact)}
-                                    onDelete={() => console.log("delete", contact.name)}
-                                    onReport={() => console.log("report", contact.name)}
+                                    onDelete={() => {
+                                        if (selectedTab === "friends") removeFriend(contact);
+                                        else if (selectedTab === "landlords") removeLandlord(contact);
+                                    }}
+                                    onReport={() => {
+                                        if (selectedTab === "friends") blockFriend(contact);
+                                        else if (selectedTab === "landlords") blockLandlord(contact);
+                                    }}
                                     onAccept={() => acceptRequest(contact)}
                                     onReject={() => rejectRequest(contact)}
                                 />  
