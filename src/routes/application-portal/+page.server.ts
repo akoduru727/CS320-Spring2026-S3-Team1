@@ -10,6 +10,10 @@ type TenantApplication = {
   status: ApplicationStatus | string;
   message: string | null;
   createdAt: string | null;
+  application_type?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  application_pdf_url?: string | null;
 };
 
 type LandlordApplication = TenantApplication & {
@@ -51,7 +55,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     const { data: applicationRows, error: applicationError } = await locals.supabase
       .from("applications")
-      .select("id, listing, status, message, created_at")
+      .select("id, listing, status, message, created_at, listings(application_type, contact_email, contact_phone, application_pdf_url)")
       .eq("tenant", locals.user.id)
       .order("created_at", { ascending: false });
 
@@ -65,31 +69,72 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       status: string;
       message: string | null;
       created_at: string | null;
+      listings: {
+        application_type: string | null;
+        contact_email: string | null;
+        contact_phone: string | null;
+        application_pdf_url: string | null;
+      }[] | null;
     }>;
 
     const listingIds = Array.from(new Set(rows.map((row) => row.listing).filter(Boolean)));
-    const listingById = new Map<string, { address: string | null; title: string | null }>();
+    const listingById = new Map<
+      string, 
+      { 
+        address: string | null; 
+        title: string | null; 
+        application_type: string | null;
+        contact_email: string | null;
+        contact_phone: string | null;
+        application_pdf_url: string | null;
+      }
+    >();
 
     if (listingIds.length > 0) {
       const { data: listingInfoRows, error: listingInfoError } = await locals.supabase
         .from("listings")
-        .select("id, address, title")
+        .select("id, address, title, application_type, contact_email, contact_phone, application_pdf_url")
         .in("id", listingIds);
 
       if (listingInfoError) console.error(listingInfoError);
-      for (const row of (listingInfoRows ?? []) as Array<{ id: string; address: string | null; title: string | null }>) {
-        listingById.set(row.id, { address: row.address, title: row.title });
+      for (const row of (listingInfoRows ?? []) as Array<{
+        id: string;
+        address: string | null;
+        title: string | null;
+        application_type: string | null;
+        contact_email: string | null;
+        contact_phone: string | null;
+        application_pdf_url: string | null;
+      }>) {
+        listingById.set(
+          row.id, 
+          { 
+            address: row.address, 
+            title: row.title,
+            application_type: row.application_type,
+            contact_email: row.contact_email,
+            contact_phone: row.contact_phone,
+            application_pdf_url: row.application_pdf_url
+          }
+        );
       }
     }
 
-    const applications: TenantApplication[] = dbReady ? rows.map((row) => ({
-      id: row.id,
-      listingId: row.listing,
-      listingLabel: listingLabel(listingById.get(row.listing) ?? { address: null, title: null }),
-      status: row.status,
-      message: row.message,
-      createdAt: row.created_at,
-    })) : [];
+    const applications: TenantApplication[] = dbReady ? rows.map((row) => {
+      const listingInfo = listingById.get(row.listing);
+        return {
+          id: row.id,
+          listingId: row.listing,
+          listingLabel: listingLabel(listingById.get(row.listing) ?? { address: null, title: null }),
+          status: row.status,
+          message: row.message,
+          createdAt: row.created_at,
+          application_type: listingInfo?.application_type ?? null,
+          contact_email: listingInfo?.contact_email ?? null,
+          contact_phone: listingInfo?.contact_phone ?? null,
+          application_pdf_url: listingInfo?.application_pdf_url ?? null,
+        };
+    }) : [];
 
     let selectedListing: { id: string; label: string } | null = null;
 

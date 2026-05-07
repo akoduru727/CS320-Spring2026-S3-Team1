@@ -92,7 +92,7 @@
         class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-800"
         href="/login"
       >
-        Sign in
+        Sign In
       </a>
     {/if}
   </div>
