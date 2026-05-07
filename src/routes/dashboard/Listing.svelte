@@ -48,12 +48,13 @@
   </div>
 
   <div class="flex items-center gap-6">
-    <button
-      aria-label="Edit listing" 
+    <a
+      href={`/edit-listing/${id}`}
+      aria-label="Edit listing"
       class="hover:text-zinc-700 transition-colors"
     >
       <SquarePen />
-    </button>
+    </a>
 
     <button 
       onclick={deleteListing}

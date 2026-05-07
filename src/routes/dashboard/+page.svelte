@@ -4,7 +4,7 @@
   import Stat from "./Stat.svelte";
 
   const { data } = $props();
-  const { listings } = $derived(data);
+  const { listings, numPendingApplications, numUnreadMessages } = $derived(data);
 </script>
 
 <div class="flex-1 flex overflow-hidden">
@@ -56,12 +56,12 @@
         />
         <Stat 
           name="Pending Applications" 
-          stat={10} 
+          stat={numPendingApplications} 
           unit="Application" 
         />
         <Stat 
           name="Unread Messages" 
-          stat={3} 
+          stat={numUnreadMessages} 
           unit="Message" 
         />
         <Stat 
