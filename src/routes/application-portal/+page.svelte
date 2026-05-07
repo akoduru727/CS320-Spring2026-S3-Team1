@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from "$app/paths";
   import Card from "$lib/components/Card.svelte";
   import { Trash2 } from "@lucide/svelte";
 
@@ -98,14 +99,14 @@
           </p>
           {#if !selectedListing}
             <p class="text-sm text-zinc-600">
-              To apply, open a listing from <a class="text-red-800 hover:text-red-700 underline" href="/search">Search</a>.
+              To apply, open a listing from <a class="text-red-800 hover:text-red-700 underline" href={resolve("/search")}>Search</a>.
             </p>
           {/if}
         {:else if data.applications.length === 0}
           <p class="text-sm text-zinc-600">You have not submitted any applications yet.</p>
           {#if !selectedListing}
             <p class="text-sm text-zinc-600">
-              To apply, open a listing from <a class="text-red-800 hover:text-red-700 underline" href="/search">Search</a>.
+              To apply, open a listing from <a class="text-red-800 hover:text-red-700 underline" href={resolve("/search")}>Search</a>.
             </p>
           {/if}
         {:else}

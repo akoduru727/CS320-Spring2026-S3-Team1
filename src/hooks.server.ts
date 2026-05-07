@@ -125,6 +125,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       });
 
     } catch {
+      // Ignore malformed e2e auth cookies and fall back to normal auth.
     }
   }
 
