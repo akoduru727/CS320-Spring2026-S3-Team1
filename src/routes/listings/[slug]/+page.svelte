@@ -2,6 +2,7 @@
   import Perk from "./Perk.svelte";
   import { Share, Star, Mail, ChevronLeft, ChevronRight } from "@lucide/svelte";
   import { page } from "$app/state";
+  import { pluralize } from "$lib/pluralize";
 
   const { data, form } = $props();    
   const listing = $derived(data.listing);
@@ -14,8 +15,6 @@
       ? listingImages
       : [{ id: "placeholder", url: placeholderImage, cover: true }],
   );
-
-  const pluralize = (word: string, count: number): string => `${count} ${word}${count === 1 ? "" : "s"}`;
 
   let copied = $state(false);
   let currentImageIndex = $state(0);

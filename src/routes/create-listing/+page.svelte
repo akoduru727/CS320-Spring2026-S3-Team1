@@ -17,15 +17,9 @@
 
 <div class="flex-1 overflow-y-auto">
   <div class="mx-40 py-9 flex flex-col gap-3">
-    <h1 class="text-center text-4xl font-medium mb-6">
+    <h1 class="text-center text-4xl font-semibold tracking-tighter mb-6">
       Create Listing
     </h1>
-
-    <!--
-      <h2 class="text-center text-md text-zinc-600 mb-6">
-        Fill out the details below to create a new listing
-      </h2>
-    -->
 
     <form method="POST" action="?/create" enctype="multipart/form-data" class="space-y-6">
       <Card class="grid grid-cols-6 gap-6">
