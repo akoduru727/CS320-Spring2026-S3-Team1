@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   if (locals.accountType) {
-    return redirect(303, locals.accountType === "tenant" ? "/profile" : "/dashboard");
+    return redirect(303, locals.accountType === "tenant" ? "/search" : "/dashboard");
   }
 
   return {
