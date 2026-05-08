@@ -2,7 +2,7 @@
   import { enhance } from "$app/forms";
 
   const { data } = $props();
-  const { roommateMatches, friendRequests, user } = $derived(data);
+  const { roommateMatches, friendRequests, currentTenant, group, myInvites } = $derived(data);
 
   type FriendRequest = {
     id: string;
@@ -34,14 +34,15 @@
     );
     if (!req) return "none";
     if (req.status === "accepted") return "accepted";
-    if (req.status === "pending" && req.sender_id === user.id) return "sent";
-    if (req.status === "pending" && req.receiver_id === user.id) return "received";
+    if (req.status === "pending" && req.sender_id === currentTenant.id) return "sent";
+    if (req.status === "pending" && req.receiver_id === currentTenant.id) return "received";
     return "none";
   };
 
   const formatPrefs = (match: typeof roommateMatches[0]) =>
     [
       match.sleep_schedule ?? null,
+      match.cost_preference ?? null,
       match.pets ? "Pets ok" : "No pets",
       match.smoking ? "Smoking ok" : "No smoking",
       match.overnight_guests ? "Guests ok" : "No overnight guests",
@@ -49,7 +50,7 @@
 
   const incomingRequests = $derived(
     (friendRequests as FriendRequest[]).filter(
-      (r) => r.receiver_id === user.id && r.status === "pending"
+      (r) => r.receiver_id === currentTenant.id && r.status === "pending"
     )
   );
 
@@ -110,7 +111,7 @@
           <p class="font-medium text-zinc-400 uppercase tracking-wide">Friends</p>
         </div>
         {#each acceptedFriends as req (req.id)}
-          {@const friendId = req.sender_id === user.id ? req.receiver_id : req.sender_id}
+          {@const friendId = req.sender_id === currentTenant.id ? req.receiver_id : req.sender_id}
           {@const match = getMatchByTenantId(friendId)}
           {@const color = getAvatarColor(friendId)}
           <div class="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50">
