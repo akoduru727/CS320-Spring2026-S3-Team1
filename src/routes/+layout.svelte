@@ -7,7 +7,7 @@
   import favicon from "$lib/assets/favicon.svg";
 
   const { data, children } = $props();
-  const { supabase, session, accountType } = $derived(data);
+  const { supabase, session, accountType} = $derived(data);
 
   onMount(() => {
     const { data } = supabase.auth.onAuthStateChange((event, _session) => {
@@ -22,6 +22,9 @@
 
 <svelte:head>
   <link rel="icon" href={favicon} />
+  <title>
+    amhrest
+  </title>
 </svelte:head>
 
 <main class="relative h-screen flex flex-col bg-zinc-200">

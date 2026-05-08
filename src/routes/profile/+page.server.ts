@@ -1,87 +1,20 @@
 import { fail, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
-type PreferenceRecord = {
-  tenant: string;
-  organization: number;
-  noise: number;
-  cleanliness: number;
-  sleep_schedule: string | null;
-  pets: boolean;
-  smoking: boolean;
-  overnight_guests: boolean;
+const isMissingPreferencesTable = (message: string | undefined) => {
+  const lower = (message ?? "").toLowerCase();
+  return lower.includes("could not find the table") && lower.includes("preferences");
 };
 
-const isAdjacentLevelMatch = (currentLevel: number, candidateLevel: number) => {
-  return Math.abs(currentLevel - candidateLevel) === 1;
+const isMissingTenantNameColumn = (message: string | undefined) => {
+  const lower = (message ?? "").toLowerCase();
+  return lower.includes("column") && lower.includes("name") && lower.includes("does not exist");
 };
 
-const isExactMatch = <T>(currentValue: T, candidateValue: T) => {
-  return currentValue === candidateValue;
-};
-
-const isRoommateMatch = (currentTenant: PreferenceRecord, candidateTenant: PreferenceRecord) => {
-  if (currentTenant.tenant === candidateTenant.tenant) {
-    return false;
-  }
-
-  const organizationMatches = isAdjacentLevelMatch(currentTenant.organization, candidateTenant.organization);
-  const noiseMatches = isAdjacentLevelMatch(currentTenant.noise, candidateTenant.noise);
-  const cleanlinessMatches = isAdjacentLevelMatch(currentTenant.cleanliness, candidateTenant.cleanliness);
-
-  const sleepMatches = isExactMatch(currentTenant.sleep_schedule, candidateTenant.sleep_schedule);
-  const petsMatch = isExactMatch(currentTenant.pets, candidateTenant.pets);
-  const smokingMatches = isExactMatch(currentTenant.smoking, candidateTenant.smoking);
-  const overnightMatches = isExactMatch(currentTenant.overnight_guests, candidateTenant.overnight_guests);
-
-  return (
-    organizationMatches &&
-    noiseMatches &&
-    cleanlinessMatches &&
-    sleepMatches &&
-    petsMatch &&
-    smokingMatches &&
-    overnightMatches
-  );
-};
-
-export const load: PageServerLoad = async ({ locals }) => {
-  const user = locals.user;
-  if (!user) return redirect(303, "/login");
-
-  if (locals.accountType !== "tenant") {
-    return {
-      roommateMatches: [],
-    };
-  }
-
-  const { data, error } = await locals.supabase
-    .from("preferences")
-    .select("tenant, organization, noise, cleanliness, sleep_schedule, pets, smoking, overnight_guests");
-
-  if (error) {
-    console.log(error);
-    return {
-      roommateMatches: [],
-    };
-  }
-
-  const preferences = (data ?? []) as PreferenceRecord[];
-  const currentTenantPreferences = preferences.find(({ tenant }) => tenant === user.id);
-
-  if (!currentTenantPreferences) {
-    return {
-      roommateMatches: [],
-    };
-  }
-
-  const roommateMatches = preferences.filter((candidateTenant) =>
-    isRoommateMatch(currentTenantPreferences, candidateTenant)
-  );
-
-  return {
-    roommateMatches,
-  };
+const getProfileTable = (accountType: "tenant" | "landlord" | null) => {
+  if (accountType === "tenant") return "tenants";
+  if (accountType === "landlord") return "landlords";
+  return null;
 };
 
 const getString = (formData: FormData, key: string) => {
@@ -98,7 +31,107 @@ const parseIntField = (formData: FormData, key: string, label: string) => {
   return { value: parsed } as const;
 };
 
+export const load: PageServerLoad = async ({ locals, url }) => {
+  if (!locals.user) return redirect(303, "/login");
+  const profileTable = getProfileTable(locals.accountType);
+  if (!profileTable) return redirect(303, "/");
+  const isTenant = locals.accountType === "tenant";
+
+  const savedParam = url.searchParams.get("saved");
+  const saved = savedParam === "name" || (isTenant && savedParam === "preferences") ? savedParam : null;
+
+  const { data: profileRow, error: profileError } = await locals.supabase
+    .from(profileTable)
+    .select("name")
+    .eq("id", locals.user.id)
+    .maybeSingle();
+  if (profileError) console.error(profileError);
+  const profileNameMessage = profileError
+    ? (isMissingTenantNameColumn(profileError.message)
+      ? "Profile name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor."
+      : profileError.message)
+    : null;
+  const metadataName = typeof locals.user.user_metadata?.name === "string" ? locals.user.user_metadata.name.trim() : "";
+  const profileName = (profileRow?.name ?? "").trim() || metadataName;
+
+  if (!isTenant) {
+    return {
+      mode: "landlord" as const,
+      preferences: null,
+      message: null,
+      profileName,
+      profileNameMessage,
+      saved,
+    };
+  }
+
+  const { data, error } = await locals.supabase
+    .from("preferences")
+    .select("organization, noise, cleanliness, sleep_schedule, pets, smoking, overnight_guests, cost_preference")
+    .eq("tenant", locals.user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+    const message = isMissingPreferencesTable(error.message)
+      ? "Preferences table is not set up yet."
+      : error.message;
+    return {
+      mode: "tenant" as const,
+      preferences: null,
+      message,
+      profileName,
+      profileNameMessage,
+      saved,
+    };
+  }
+
+  return {
+    mode: "tenant" as const,
+    preferences: data ?? null,
+    message: null,
+    profileName,
+    profileNameMessage,
+    saved,
+  };
+};
+
 export const actions: Actions = {
+  updateName: async ({ request, locals }) => {
+    const user = locals.user;
+    if (!user) return redirect(303, "/login");
+    const profileTable = getProfileTable(locals.accountType);
+    if (!profileTable) return fail(403, { nameFormMessage: "Only tenants and landlords can update their name." });
+
+    const formData = await request.formData();
+    const name = getString(formData, "name");
+
+    if (!name) return fail(400, { nameFormMessage: "Name is required." });
+    if (name.length > 80) return fail(400, { nameFormMessage: "Name is too long (max 80 characters)." });
+
+    const { error } = await locals.supabase
+      .from(profileTable)
+      .update({ name })
+      .eq("id", user.id);
+
+    if (error) {
+      console.error(error);
+      if (isMissingTenantNameColumn(error.message)) {
+        return fail(500, {
+          nameFormMessage: "Profile name column is not set up yet. Run `scripts/supabase-profile-name.sql` in Supabase SQL editor.",
+        });
+      }
+      return fail(500, { nameFormMessage: error.message });
+    }
+
+    try {
+      await locals.supabase.auth.updateUser({ data: { name } });
+    } catch (authError) {
+      console.error(authError);
+    }
+
+    return redirect(303, "/profile?saved=name");
+  },
   create: async ({ request, locals }) => {
     const user = locals.user;
     if (!user) return redirect(303, "/login");
@@ -134,6 +167,9 @@ export const actions: Actions = {
     const smokingResult = formData.get("smoking") === "true";
 
     const overnightResult = formData.get("overnight") === "true";
+    
+    const costPreferenceResult = getString(formData, "cost_preference");
+
 
     const payload = {
       tenant : user.id,
@@ -143,7 +179,8 @@ export const actions: Actions = {
       sleep_schedule : sleepScheduleResult,
       pets : petsResult,
       smoking : smokingResult,
-      overnight_guests : overnightResult
+      overnight_guests : overnightResult,
+      cost_preference : costPreferenceResult
     }
     
     const { error } = await locals.supabase.from("preferences").upsert(payload, {onConflict : 'tenant'})
@@ -152,5 +189,7 @@ export const actions: Actions = {
       console.log(error)
       return fail(500, { message: `Unexpected error: ${error.message}.` });
     }
+
+    return redirect(303, "/profile?saved=preferences");
   }
 }

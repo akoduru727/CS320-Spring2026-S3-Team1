@@ -1,14 +1,29 @@
 <script lang="ts">
+  import { page } from "$app/state";
+  import { totalUnreadCount } from "$lib/components/unreadStore";
+  import {
+    FileText,
+    Home,
+    MessageCircle,
+    PlusSquare,
+    Search,
+    Star,
+    User,
+    Users,
+  } from "@lucide/svelte";
+
   interface Props {
     accountType: "tenant" | "landlord" | null,
     isAuthenticated: boolean,
+    totalUnread?: number;
   };
 
-  const { accountType, isAuthenticated }: Props = $props();
+  const { accountType, isAuthenticated, totalUnread = 0 }: Props = $props();
 
   type Route = {
     name: string;
     href: string;
+    icon: any;
   };
 
   let routes: Route[] = $derived(
@@ -21,8 +36,7 @@
       { name: "About", href: "/" },
       { name: "Application Portal", href: "/" },
     ] : accountType === "landlord" ? [
-      { name: "Dashboard", href: "/dashboard" },
-      { name: "Post Listing", href: "/post-listing" },
+      { name: "Your Listings", href: "/dashboard" },
       { name: "Application Portal", href: "/" },
       { name: "Chats", href: "/" },
       { name: "About", href: "/" },
@@ -32,34 +46,48 @@
 
 <nav class="flex items-center justify-between bg-zinc-100 p-4 shadow">
   <a href="/">
-    <span class="select-none text-3xl font-bold tracking-tighter text-red-800">amhrest</span>
+    <span class="select-none text-3xl font-bold tracking-tighter text-red-500">amhrest</span>
   </a>
 
-  <div class="flex items-center gap-9">
-    {#each routes as { name, href } (name)}
-      <a 
-        {href}
-        class="rounded-md px-3 py-1.5 hover:bg-zinc-200 transition-colors"
-      >
-        {name}
-      </a>
-    {/each}
+    <div class="flex flex-1 items-center justify-center gap-1">
+      {#each routes as { name, href, icon } (name)}
+        {@const Icon = icon}
+        <a
+          {href}
+          aria-current={isActive(href) ? "page" : undefined}
+          class={[
+            "inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap",
+            isActive(href)
+              ? "bg-zinc-200 text-zinc-900"
+              : "text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900",
+          ].join(" ")}
+        >
+          <Icon size={16} />
+          <span>{name}</span>
+          {#if name === "Chats" && $totalUnreadCount > 0}
+          <span class="min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            {$totalUnreadCount}
+          </span>
+          {/if}
+        </a>
+      {/each}
+    </div>
 
     {#if isAuthenticated}
       <form method="POST" action="/auth/signout">
-       <button
+        <button
           type="submit"
-          class="rounded-md bg-zinc-900 hover:bg-zinc-800 transition-colors px-3 py-1.5 text-sm font-medium text-zinc-100"
+          class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-800"
         >
           Sign Out
         </button>
       </form>
     {:else}
       <a
-        class="rounded-md bg-zinc-900 hover:bg-zinc-800 transition-colors px-3 py-1.5 text-sm font-medium text-zinc-100"
+        class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-800"
         href="/login"
       >
-        Sign in
+        Sign In
       </a>
     {/if}
   </div>
