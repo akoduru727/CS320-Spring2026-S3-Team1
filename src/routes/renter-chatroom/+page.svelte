@@ -152,6 +152,8 @@
     if (contactId){
         const contact = [...friendContacts, ...landlordContacts].find(c => c.id === contactId);
         if (contact){
+            const isLandlord = landlordContacts.some(c => c.id === contactId);
+            if (isLandlord) selectedTab = "landlords";
             openChat(contact);
         }
     }
