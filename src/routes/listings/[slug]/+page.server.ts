@@ -92,14 +92,20 @@ export const actions: Actions = {
     return redirect(303, url.pathname);
   },
   contactLandlord: async ({ locals, params }) => {
+    if (locals.accountType !== "tenant") return redirect(303, "/");
     if (!locals.user) return redirect(303, "/login");
     const tenantId = locals.user.id;
     const listingId = params.slug;
     
     //Getting landlord id:
-    const { data: listing } = await locals.supabase
+    const { data: listing, error: listingError } = await locals.supabase
       .from("listings").select("landlord").eq("id", listingId).single();
+    if (listingError) {
+      console.error(listingError);
+      return fail(500, { message: listingError.message });
+    }
     if (!listing) return fail(500, { message: "Listing not found" });
+    if (!listing.landlord) return fail(500, { message: "Listing has no landlord associated" });
     const landlordId = listing.landlord;
 
     //Adds landlord to user tenant's landlord contacts
