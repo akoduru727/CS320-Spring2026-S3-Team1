@@ -15,13 +15,15 @@
 </script>
 
 <div class="flex gap-2">
-  {#each {length: max} as _, i}
-    <div 
+  {#each { length: max }, i (i)}
+    <button
+      type="button"
       class="flex-1 h-2 rounded-full cursor-pointer transition ease-in-out duration-200"
       class:bg-zinc-300={i >= level}
       class:bg-red-800={i < level}
+      aria-label={`Set level to ${i + 1}`}
       onclick={() => setLevel(i + 1)}
     >
-    </div>
+    </button>
   {/each}
 </div>

@@ -1,12 +1,11 @@
 <script lang="ts">
+  import { resolve } from "$app/paths";
   import Card from "$lib/components/Card.svelte";
+  import { Trash2 } from "@lucide/svelte";
 
   const { data, form } = $props();
-
-  const tenantListings = $derived(data.mode === "tenant" ? (data.listings ?? []) : []);
-  let selectedListingId = $state(data.mode === "tenant" ? (data.selectedListingId ?? "") : "");
-  let showNewApplication = $state(false);
-  if (selectedListingId) showNewApplication = true;
+  const selectedListing = $derived(data.mode === "tenant" ? (data.selectedListing ?? null) : null);
+  let showApplications = $state(true);
 
   const formatDate = (iso: string | null) => {
     if (!iso) return "Unknown date";
@@ -29,11 +28,6 @@
     if (step === "rejected") return "bg-red-600/20 text-red-900";
     return "bg-zinc-900 text-zinc-100";
   };
-
-  const listingLabelById = $derived(
-    new Map<string, string>(tenantListings.map((l: { id: string; label: string }) => [l.id, l.label]))
-  );
-  const selectedListingLabel = $derived(selectedListingId ? listingLabelById.get(selectedListingId) ?? null : null);
 </script>
 
 <div class="flex-1 overflow-y-auto">
@@ -41,7 +35,7 @@
     <div>
       <h1 class="text-3xl font-semibold tracking-tighter">Application Portal</h1>
       {#if data.mode === "tenant"}
-        <p class="text-zinc-600">Submit rental applications and track their status.</p>
+        <p class="text-zinc-600">Track your rental applications and their status.</p>
       {:else}
         <p class="text-zinc-600">Review tenant applications for your listings.</p>
       {/if}
@@ -60,111 +54,148 @@
             <h2 class="text-xl font-semibold tracking-tight">Your applications</h2>
             <p class="text-sm text-zinc-600">Track application status changes here.</p>
           </div>
-          <button
-            type="button"
-            class="rounded-md border border-zinc-300 bg-zinc-100 hover:bg-zinc-200 transition-colors px-3 py-1.5 text-sm font-medium"
-            onclick={() => (showNewApplication = !showNewApplication)}
-            disabled={!data.dbReady}
-          >
-            {showNewApplication ? "Hide form" : "New application"}
-          </button>
         </div>
+
+        {#if selectedListing}
+          <div class="rounded-lg border border-zinc-300 bg-zinc-50 p-4 space-y-4">
+            <h3 class="text-lg font-semibold tracking-tight">New application</h3>
+
+            <form method="POST" action="?/submit" class="space-y-4">
+              <div class="space-y-1">
+                <p class="text-sm font-medium text-zinc-700">Listing</p>
+                <p class="rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm">
+                  {selectedListing.label}
+                </p>
+                <input type="hidden" name="listing_id" value={selectedListing.id} />
+              </div>
+
+              <label class="block">
+                <p class="text-sm font-medium text-zinc-700">Message (optional)</p>
+                <textarea
+                  name="message"
+                  rows={4}
+                  class="mt-1 w-full rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm"
+                  placeholder="Introduce yourself and include anything the landlord should know."
+                  disabled={!data.dbReady}
+                ></textarea>
+              </label>
+
+              <div class="flex justify-end">
+                <button
+                  type="submit"
+                  class="rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-2 text-sm font-medium text-zinc-100"
+                  disabled={!data.dbReady}
+                >
+                  Submit Application
+                </button>
+              </div>
+            </form>
+          </div>
+        {/if}
 
         {#if !data.dbReady}
           <p class="text-sm text-zinc-600">
             Application tracking is unavailable until the applications table exists.
           </p>
+          {#if !selectedListing}
+            <p class="text-sm text-zinc-600">
+              To apply, open a listing from <a class="text-red-800 hover:text-red-700 underline" href={resolve("/search")}>Search</a>.
+            </p>
+          {/if}
         {:else if data.applications.length === 0}
           <p class="text-sm text-zinc-600">You have not submitted any applications yet.</p>
+          {#if !selectedListing}
+            <p class="text-sm text-zinc-600">
+              To apply, open a listing from <a class="text-red-800 hover:text-red-700 underline" href={resolve("/search")}>Search</a>.
+            </p>
+          {/if}
         {:else}
-          <div class="space-y-3">
-            {#each data.applications as app (app.id)}
-              <div class="rounded-lg border border-zinc-300 bg-zinc-50 p-4 space-y-3">
-                <div class="flex items-start justify-between gap-4">
-                  <div>
-                    <p class="font-medium">{app.listingLabel}</p>
-                    <p class="text-xs text-zinc-600">{formatDate(app.createdAt)}</p>
-                  </div>
-                  <span class={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusClass(app.status)}`}>
-                    {app.status}
-                  </span>
-                </div>
-
-                <div class="flex items-center gap-2 text-xs text-zinc-700">
-                  <span class={`rounded-full px-2 py-1 ${flowStepClass(app.status, "pending")}`}>Pending</span>
-                  <span class="text-zinc-400">→</span>
-                  <span class={`rounded-full px-2 py-1 ${flowStepClass(app.status, "approved")}`}>Approved</span>
-                  <span class="text-zinc-400">→</span>
-                  <span class={`rounded-full px-2 py-1 ${flowStepClass(app.status, "rejected")}`}>Rejected</span>
-                </div>
-
-                {#if app.message}
-                  <p class="text-sm text-zinc-700 whitespace-pre-wrap">{app.message}</p>
-                {/if}
-              </div>
-            {/each}
+          <div class="flex items-center gap-3">
+            <div class="h-px flex-1 bg-zinc-300"></div>
+            <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Active applications</p>
+            <div class="h-px flex-1 bg-zinc-300"></div>
+            <button
+              type="button"
+              class="rounded-md border border-zinc-300 bg-zinc-100 hover:bg-zinc-200 transition-colors px-3 py-1.5 text-sm font-medium"
+              onclick={() => (showApplications = !showApplications)}
+            >
+              {showApplications ? "Hide" : "Show"}
+            </button>
           </div>
+          {#if !showApplications}
+            <p class="text-sm text-zinc-600">Applications hidden.</p>
+          {:else}
+            <div class="space-y-3">
+              {#each data.applications as app (app.id)}
+                <div class="rounded-lg border border-zinc-300 bg-zinc-50 p-4 space-y-3">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <p class="font-medium">{app.listingLabel}</p>
+                      <p class="text-xs text-zinc-600">{formatDate(app.createdAt)}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusClass(app.status)}`}>
+                        {app.status}
+                      </span>
+                      <form
+                        method="POST"
+                        action="?/delete"
+                        class="inline-flex"
+                        onsubmit={(e) => {
+                          if (!confirm("Are you sure you want to delete this application?")) e.preventDefault();
+                        }}
+                      >
+                        <input type="hidden" name="application_id" value={app.id} />
+                        <button
+                          type="submit"
+                          class="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-800 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-zinc-500"
+                          disabled={!data.dbReady}
+                          aria-label="Delete Application"
+                          title="Delete Application"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2 text-xs text-zinc-700">
+                    <span class={`rounded-full px-2 py-1 ${flowStepClass(app.status, "pending")}`}>Pending</span>
+                    <span class="text-zinc-400">→</span>
+                    <span class={`rounded-full px-2 py-1 ${flowStepClass(app.status, "approved")}`}>Approved</span>
+                    <span class="text-zinc-400">→</span>
+                    <span class={`rounded-full px-2 py-1 ${flowStepClass(app.status, "rejected")}`}>Rejected</span>
+                  </div>
+
+                  {#if app.message}
+                    <p class="text-sm text-zinc-700 whitespace-pre-wrap">{app.message}</p>
+                  {/if}
+
+                  {#if app.application_type === "contact"}
+                    <div class="text-sm text-zinc-700">
+                      <p><strong>Email:</strong> {app.contact_email}</p>
+                      {#if app.contact_phone}
+                        <p><strong>Phone:</strong> {app.contact_phone}</p>
+                      {/if}
+                    </div>
+                  {/if}
+
+                  {#if app.application_type === "pdf" && app.application_pdf_url}
+                    <a
+                      href={app.application_pdf_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-red-600 hover:underline text-sm"
+                    >
+                      View Application PDF
+                    </a>
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          {/if}
         {/if}
       </Card>
-
-      {#if showNewApplication}
-        <Card class="space-y-4">
-          <h2 class="text-xl font-semibold tracking-tight">New application</h2>
-
-          <form method="POST" action="?/submit" class="space-y-4">
-            {#if selectedListingLabel}
-              <div class="space-y-1">
-                <p class="text-sm font-medium text-zinc-700">Listing</p>
-                <p class="rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm">
-                  {selectedListingLabel}
-                </p>
-                <input type="hidden" name="listing_id" value={selectedListingId} />
-              </div>
-            {:else}
-              <label class="block">
-                <p class="text-sm font-medium text-zinc-700">Listing</p>
-                <select
-                  bind:value={selectedListingId}
-                  name="listing_id"
-                  class="mt-1 w-full rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm"
-                  required
-                  disabled={!data.dbReady}
-                >
-                  <option value="" selected disabled>Select a listing…</option>
-                  {#each tenantListings as listing (listing.id)}
-                    <option value={listing.id}>{listing.label}</option>
-                  {/each}
-                </select>
-              </label>
-            {/if}
-
-            <label class="block">
-              <p class="text-sm font-medium text-zinc-700">Message (optional)</p>
-              <textarea
-                name="message"
-                rows={4}
-                class="mt-1 w-full rounded-md border border-zinc-300 bg-zinc-200 px-3 py-2 text-sm"
-                placeholder="Introduce yourself and include anything the landlord should know."
-                disabled={!data.dbReady}
-              ></textarea>
-            </label>
-
-            <div class="flex justify-end">
-              <button
-                type="submit"
-                class="rounded-md bg-red-800 hover:bg-red-700 transition-colors px-4 py-2 text-sm font-medium text-zinc-100"
-                disabled={!data.dbReady || tenantListings.length === 0 || !selectedListingId}
-              >
-                Submit application
-              </button>
-            </div>
-          </form>
-
-          {#if tenantListings.length === 0}
-            <p class="text-sm text-zinc-600">No listings available to apply to yet.</p>
-          {/if}
-        </Card>
-      {/if}
     {:else}
       <Card class="space-y-4">
         <h2 class="text-xl font-semibold tracking-tight">Incoming applications</h2>
@@ -185,9 +216,30 @@
                     <p class="text-sm text-zinc-700">From: {app.tenantLabel}</p>
                     <p class="text-xs text-zinc-600">{formatDate(app.createdAt)}</p>
                   </div>
-                  <span class={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusClass(app.status)}`}>
-                    {app.status}
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <span class={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusClass(app.status)}`}>
+                      {app.status}
+                    </span>
+                    <form
+                      method="POST"
+                      action="?/delete"
+                      class="inline-flex"
+                      onsubmit={(e) => {
+                        if (!confirm("Are you sure you want to delete this application?")) e.preventDefault();
+                      }}
+                    >
+                      <input type="hidden" name="application_id" value={app.id} />
+                      <button
+                        type="submit"
+                        class="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-800 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-zinc-500"
+                        disabled={!data.dbReady}
+                        aria-label="Delete Application"
+                        title="Delete Application"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </form>
+                  </div>
                 </div>
 
                 {#if app.message}

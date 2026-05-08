@@ -4,7 +4,7 @@
   import Stat from "./Stat.svelte";
 
   const { data } = $props();
-  const { listings } = $derived(data);
+  const { listings, numPendingApplications, numUnreadMessages } = $derived(data);
 </script>
 
 <div class="flex-1 flex overflow-hidden">
@@ -28,7 +28,7 @@
           </h2>
 
           <a 
-            href="/create-listing" 
+            href="/post-listing" 
             class="bg-red-800 hover:bg-red-700 transition-colors text-zinc-100 text-sm font-medium px-3 py-2 flex items-center gap-2 rounded"
           >
             Create Listing
@@ -56,12 +56,12 @@
         />
         <Stat 
           name="Pending Applications" 
-          stat={10} 
+          stat={numPendingApplications} 
           unit="Application" 
         />
         <Stat 
           name="Unread Messages" 
-          stat={3} 
+          stat={numUnreadMessages} 
           unit="Message" 
         />
         <Stat 
