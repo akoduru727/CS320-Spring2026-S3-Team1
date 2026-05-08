@@ -73,7 +73,7 @@
               <Slider
                 min=0 max=10
                 bind:value={bathValue}
-                showAny={_ => "Any number of baths"}
+                showAny={() => "Any number of baths"}
                 showValue={n => pluralize("bath", n)}
               />
             </div>
@@ -82,7 +82,7 @@
               <Slider
                 min=0 max=10
                 bind:value={bedValue}
-                showAny={_ => "Any number of beds"}
+                showAny={() => "Any number of beds"}
                 showValue={n => pluralize("bed", n)}
               />
             </div>
@@ -91,7 +91,7 @@
               <Slider
                 min=0 max=10
                 bind:value={miValue}
-                showAny={_ => "Any distance from campus"}
+                showAny={() => "Any distance from campus"}
                 showValue={n => `Within ${pluralize("mile", n)} of campus`}
               />
             </div>

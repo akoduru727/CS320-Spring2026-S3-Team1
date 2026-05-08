@@ -7,8 +7,6 @@
   };
 
   const { class: extraClass = "", name, field, required = true }: Props = $props();
-
-  const inputName = field ?? name;
 </script>
 
 <label class={`col-span-2 flex gap-3 items-center ${extraClass}`}>
@@ -17,7 +15,7 @@
   </p>
   <input 
     type="checkbox"
-    name={inputName}
+    name={field ?? name}
     value="true"
     {required}
     class="accent-red-800"
