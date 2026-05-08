@@ -130,6 +130,9 @@ export const load: PageServerLoad = async ({ locals }) => {
     };
   }
 
+  console.log("group:", JSON.stringify(group));
+  console.log("currentTenant:", JSON.stringify(currentTenant));
+
   const matchedIds = roommateMatches.map((m) => m.tenant);
 
   const { data: tenants, error: tenantError } = await locals.supabase
@@ -149,9 +152,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   const { data: friendRequests, error: frError } = await locals.supabase
     .from("friend_requests")
     .select("id, sender_id, receiver_id, status")
-    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-    .in("sender_id", [...matchedIds, user.id])
-    .in("receiver_id", [...matchedIds, user.id]);
+    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
 
   if (frError) {
     return { roommateMatches: enrichedMatches, friendRequests: [], currentTenant, group, myInvites: [] };
@@ -223,6 +224,20 @@ export const actions: Actions = {
       .eq("status", "pending");
 
     if (error) return fail(500, { message: `Failed to accept request: ${error.message}` });
+
+    // Syncs to tenants.friends array for the chatroom
+    const { data: myRow } = await locals.supabase
+      .from("tenants").select("friends").eq("id", user.id).single();
+    const { data: theirRow } = await locals.supabase
+      .from("tenants").select("friends").eq("id", senderId).single();
+
+    await locals.supabase.from("tenants").update({
+      friends: [...new Set([...(myRow?.friends ?? []), senderId])]
+    }).eq("id", user.id);
+
+    await locals.supabase.from("tenants").update({
+      friends: [...new Set([...(theirRow?.friends ?? []), user.id])]
+    }).eq("id", senderId);
   },
 
   decline: async ({ request, locals }) => {

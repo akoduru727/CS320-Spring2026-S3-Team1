@@ -2,7 +2,11 @@
   import { enhance } from "$app/forms";
 
   const { data } = $props();
-  const { roommateMatches, friendRequests, currentTenant, group, myInvites } = $derived(data);
+  const roommateMatches = $derived(data.roommateMatches);
+  const friendRequests = $derived(data.friendRequests);
+  const currentTenant = $derived(data.currentTenant);
+  const group = $derived(data.group);
+  const myInvites = $derived(data.myInvites);
 
   type FriendRequest = {
     id: string;
@@ -78,7 +82,9 @@ const formatSleepSchedule = (val: string | null) => {
   );
 
   const acceptedFriends = $derived(
-    (friendRequests as FriendRequest[]).filter((r) => r.status === "accepted")
+    (friendRequests as FriendRequest[])
+      .filter((r) => r.status === "accepted")
+      .filter((r, i, arr) => arr.findIndex((x) => x.id === r.id) === i)
   );
 
   const getMatchByTenantId = (id: string) =>
@@ -111,11 +117,12 @@ const formatSleepSchedule = (val: string | null) => {
   const isLeader = $derived(currentTenant?.group_leader === true);
 
   const acceptedFriendIds = $derived(
-    (friendRequests as FriendRequest[])
-      .filter((r) => r.status === "accepted")
-      .map((r) => r.sender_id === currentTenant.id ? r.receiver_id : r.sender_id)
+    [...new Set(
+      (friendRequests as FriendRequest[])
+        .filter((r) => r.status === "accepted")
+        .map((r) => r.sender_id === currentTenant.id ? r.receiver_id : r.sender_id)
+    )]
   );
-
   const invitableFriends = $derived(
     acceptedFriendIds.filter((id: string) => {
       if (!group) return true;
@@ -126,8 +133,6 @@ const formatSleepSchedule = (val: string | null) => {
 
   let showGroupPanel = $state(false);  
 </script>
-
-<div class="flex-1 overflow-hidden flex h-full">
 
   <!-- Group panel modal -->
   {#if showGroupPanel && group}
@@ -219,9 +224,20 @@ const formatSleepSchedule = (val: string | null) => {
                     </div>
                     <form method="POST" action="?/inviteToGroup" use:enhance>
                       <input type="hidden" name="tenantId" value={friendId} />
-                      <button class="text-xs px-2.5 py-1 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-50 transition-colors shrink-0">
-                        Invite
-                      </button>
+                        <button
+                          type="button"
+                          onclick={async () => {
+                            console.log("invite clicked for:", friendId);
+                            const fd = new FormData();
+                            fd.append("tenantId", friendId);
+                            const res = await fetch("?/inviteToGroup", { method: "POST", body: fd });
+                            const json = await res.json();
+                            console.log("invite result:", json);
+                          }}
+                          class="text-xs px-2.5 py-1 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-50 transition-colors shrink-0"
+                        >
+                          Invite
+                        </button>
                     </form>
                   </div>
                 {/each}
@@ -248,7 +264,12 @@ const formatSleepSchedule = (val: string | null) => {
                         <div class="flex-1 min-w-0">
                           <p class="text-sm text-zinc-800 truncate">{member.name}</p>
                         </div>
-                        <form method="POST" action="?/transferLeadership" use:enhance={{ result() { showGroupPanel = false; } }}>
+                        <form method="POST" action="?/transferLeadership" use:enhance={() => {
+                          return async ({ result, update }) => {
+                            await update();
+                            if (result.type !== 'failure') showGroupPanel = false;
+                          };
+                        }}>
                           <input type="hidden" name="newLeaderId" value={member.id} />
                           <button class="text-xs px-2.5 py-1 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-50 transition-colors shrink-0">
                             Make leader
@@ -260,13 +281,23 @@ const formatSleepSchedule = (val: string | null) => {
                 </div>
               {/if}
               <!-- Delete -->
-              <form method="POST" action="?/deleteGroup" use:enhance={{ result() { showGroupPanel = false; } }}>
+              <form method="POST" action="?/deleteGroup" use:enhance={() => {
+                return async ({ result, update }) => {
+                  await update();
+                  if (result.type !== 'failure') showGroupPanel = false;
+                };
+              }}>
                 <button class="w-full text-xs py-2 px-3 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors">
                   Delete group
                 </button>
               </form>
             {:else}
-              <form method="POST" action="?/leaveGroup" use:enhance={{ result() { showGroupPanel = false; } }}>
+              <form method="POST" action="?/leaveGroup" use:enhance={() => {
+                return async ({ result, update }) => {
+                  await update();
+                  if (result.type !== 'failure') showGroupPanel = false;
+                };
+              }}>
                 <button class="w-full text-xs py-2 px-3 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50 transition-colors">
                   Leave group
                 </button>
@@ -278,6 +309,9 @@ const formatSleepSchedule = (val: string | null) => {
       </div>
     </div>
   {/if}
+
+<div class="flex-1 overflow-hidden flex h-full">
+
 
   <!-- Left panel: friends list -->
   <aside class="w-1/3 border-r border-zinc-200 bg-white flex flex-col overflow-hidden">
@@ -375,7 +409,7 @@ const formatSleepSchedule = (val: string | null) => {
       <!-- Existing group or create button -->
       {#if group}
         <button
-          onclick={() => (showGroupPanel = true)}
+          onclick={() => { showGroupPanel = true; }}
           class="w-full text-left flex items-center gap-3 px-5 py-3 hover:bg-zinc-50 transition-colors"
         >
           <div class="w-9 h-9 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 shrink-0">
@@ -481,9 +515,9 @@ const formatSleepSchedule = (val: string | null) => {
                 </form>
               {/if}
 
-              <button class="flex-1 text-xs py-2 px-3 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700 transition-colors">
-                Message
-              </button>
+              <a href="/renter-chatroom" class="flex-1 text-xs py-2 px-3 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700 transition-colors text-center">
+                  Message
+              </a>
             </div>
           </div>
         {/each}
