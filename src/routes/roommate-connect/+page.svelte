@@ -39,12 +39,35 @@
     return "none";
   };
 
+const formatSleepSchedule = (val: string | null) => {
+    if (!val) return null;
+    const map: Record<string, string> = {
+      later_than_twelve: "After 12AM",
+      nine_to_ten: "9PM–10PM",
+      ten_to_eleven: "10PM–11PM",
+      eleven_to_twelve: "11PM–12AM",
+    };
+    return map[val] ?? val;
+  };
+
+  const formatCostPreference = (val: string | null) => {
+    if (!val) return null;
+    const map: Record<string, string> = {
+      no_preference: "No budget preference",
+      under_1000: "Under $1,000/mo",
+      under_1500: "Under $1,500/mo",
+      under_2000: "Under $2,000/mo",
+      over_2000: "Over $2,000/mo",
+    };
+    return map[val] ?? val;
+  };
+
   const formatPrefs = (match: typeof roommateMatches[0]) =>
     [
-      match.sleep_schedule ?? null,
-      match.cost_preference ?? null,
+      formatSleepSchedule(match.sleep_schedule),
+      formatCostPreference(match.cost_preference),
       match.pets ? "Pets ok" : "No pets",
-      match.smoking ? "Smoking ok" : "No smoking",
+      match.smoking ? "Smoking-friendly" : "Smoke-free",
       match.overnight_guests ? "Guests ok" : "No overnight guests",
     ].filter(Boolean);
 
