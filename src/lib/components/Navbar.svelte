@@ -29,7 +29,7 @@
   let routes: Route[] = $derived(
     accountType === "tenant" ? [
       { name: "Profile", href: "/profile" },
-      { name: "Connect", href: "/" },
+      { name: "Connect", href: "/roommate-connect" },
       { name: "Chats", href: "/" },
       { name: "Favorites", href: "/favorites" },
       { name: "History", href: "/" },
@@ -42,6 +42,8 @@
       { name: "About", href: "/" },
     ] : []
   );
+
+    const isActive = (href: string) => page.url.pathname === href;
 </script>
 
 <nav class="flex items-center justify-between bg-zinc-100 p-4 shadow">
@@ -90,5 +92,5 @@
         Sign In
       </a>
     {/if}
-  </div>
+
 </nav>
