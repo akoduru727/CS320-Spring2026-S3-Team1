@@ -86,15 +86,13 @@
           <Share size={16} />
           <span>{copied ? "Copied!" : "Share"}</span>
         </button>
-        <form method="POST" action="?/contactLandlord">
-          <button 
-            type="submit"
-            class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium bg-zinc-100 hover:bg-zinc-50 transition-colors border border-zinc-300"
-          >
-            <Mail size={16} />
-            <span>Contact</span>
-          </button>
-        </form>
+        <!-- TODO: make this do something -->
+        <button 
+          class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium bg-zinc-100 hover:bg-zinc-50 transition-colors border border-zinc-300"
+        >
+          <Mail size={16} />
+          <span>Contact</span>
+        </button>
       </div>
     </div>
     <div class="space-y-4">
