@@ -205,7 +205,7 @@
                     {#if selectedContact && selectedConversationId}
                         {#key selectedContact.id}
                             <!-- Chat View -->
-                            <ChatPage contact = {selectedContact} conversationId = {selectedConversationId} onBack = {closeChat} supabase={data.supabase}/>
+                            <ChatPage contact={selectedContact} conversationId={selectedConversationId} onBack={closeChat} supabase={data.supabase} groupMembers={selectedContact?.id === "roommate-group" ? roommateGroup : []}/>
                         {/key}
                     {:else}
                         <!-- Search Box -->

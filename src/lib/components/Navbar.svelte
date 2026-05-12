@@ -26,40 +26,30 @@
     icon: any;
   };
 
-  const pathname = $derived(page.url.pathname);
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  let routes: Route[] = $derived(
+    accountType === "tenant" ? [
+      { name: "Profile", href: "/profile" },
+      { name: "Connect", href: "/roommate-connect" },
+      { name: "Chats", href: "/" },
+      { name: "Favorites", href: "/favorites" },
+      { name: "History", href: "/" },
+      { name: "About", href: "/" },
+      { name: "Application Portal", href: "/" },
+    ] : accountType === "landlord" ? [
+      { name: "Your Listings", href: "/dashboard" },
+      { name: "Application Portal", href: "/" },
+      { name: "Chats", href: "/" },
+      { name: "About", href: "/" },
+    ] : []
+  );
 
-  let routes: Route[] = $derived.by(() => {
-    if (accountType === "tenant") {
-      return [
-        { name: "Search", href: "/search", icon: Search },
-        { name: "Profile", href: "/profile", icon: User },
-        { name: "Connect", href: "/connect", icon: Users },
-        { name: "Chats", href: "/renter-chatroom", icon: MessageCircle },
-        { name: "Favorites", href: "/favorites", icon: Star },
-        { name: "Application Portal", href: "/application-portal", icon: FileText },
-      ];
-    }
-
-    if (accountType === "landlord") {
-      return [
-        { name: "Dashboard", href: "/dashboard", icon: Home },
-        { name: "Profile", href: "/profile", icon: User },
-        { name: "Create Listing", href: "/create-listing", icon: PlusSquare },
-        { name: "Application Portal", href: "/application-portal", icon: FileText },
-        { name: "Chats", href: "/landlord-chatroom", icon: MessageCircle },
-      ];
-    }
-
-    return [];
-  });
+    const isActive = (href: string) => page.url.pathname === href;
 </script>
 
-<nav class="sticky top-0 z-50 border-b border-zinc-200 bg-zinc-100/90 backdrop-blur">
-  <div class="mx-auto flex max-w-6xl items-center gap-5 px-6 py-3">
-    <a href={isAuthenticated ? (accountType === "landlord" ? "/dashboard" : "/search") : "/login"}>
-      <span class="select-none text-3xl font-bold tracking-tighter text-red-800">amhrest</span>
-    </a>
+<nav class="flex items-center justify-between bg-zinc-100 p-4 shadow">
+  <a href="/">
+    <span class="select-none text-3xl font-bold tracking-tighter text-red-500">amhrest</span>
+  </a>
 
     <div class="flex flex-1 items-center justify-center gap-1">
       {#each routes as { name, href, icon } (name)}
@@ -102,5 +92,5 @@
         Sign In
       </a>
     {/if}
-  </div>
+
 </nav>
