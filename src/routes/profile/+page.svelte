@@ -183,7 +183,7 @@
             <option value = "nine_to_ten">9 PM to 10 PM</option>
             <option value = "ten_to_eleven">10 PM to 11 PM</option>
             <option value = "eleven_to_twelve">11 PM to 12 AM</option>
-            <option value = "later_than_twelve">After 12 AM</option>
+            <option value = "later_than_twelve">Later than 12 AM</option>
             
           </select>
         </div>

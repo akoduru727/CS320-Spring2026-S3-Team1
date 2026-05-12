@@ -20,10 +20,8 @@
         onBack: () => void;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         supabase: any;
-        groupMembers?: {id: string, name: string}[];
     };
-    
-    const { contact, conversationId, onBack, supabase, groupMembers = [] }: Props = $props();
+    const { contact, conversationId, onBack, supabase}: Props = $props();
 
     let newMessage = $state("");
     let chatArea: HTMLDivElement;
@@ -50,7 +48,7 @@
         currentUserId = json.currentUserId;
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
         messages = (messagesData ?? []).map((msg:any) => ({
-            senderName: msg.sender === currentUserId ? "You" : (groupMembers.find(m => m.id === msg.sender)?.name ?? contact.name), text: msg.messages_content, user: msg.sender === currentUserId ? "self" : "other", date: new Date(msg.created_at+ "Z") // Append 'Z' to indicate UTC time
+            senderName: msg.sender === currentUserId ? "You" : contact.name, text: msg.messages_content, user: msg.sender === currentUserId ? "self" : "other", date: new Date(msg.created_at+ "Z") // Append 'Z' to indicate UTC time
         }));
         await scrollToBottom();
     }
@@ -83,7 +81,7 @@
             }, async (payload: any) => {
                 const row = payload.new;
                 messages = [...messages, {
-                    senderName: row.sender === currentUserId ? "You" : (groupMembers.find((m: {id: string, name: string}) => m.id === row.sender)?.name ?? contact.name),
+                    senderName: row.sender === currentUserId ? "You" : contact.name,
                     text: row.messages_content,
                     user: row.sender === currentUserId ? "self" : "other",
                     date: new Date(row.created_at)
