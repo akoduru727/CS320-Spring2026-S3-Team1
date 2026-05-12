@@ -145,18 +145,6 @@
     requestContacts = requestContacts.filter(c => c.id !== contact.id);
   }
   onMount(() => {
-    //If redirected from listings page, it auto-opens chat with that landlord
-    //window.location.search gets the query parameters from the URL, in this case ?contactId=someId
-    //URLSearchParams parses it so we can extract the contactId value
-    const contactId = new URLSearchParams(window.location.search).get("contactId");
-    if (contactId){
-        const contact = [...friendContacts, ...landlordContacts].find(c => c.id === contactId);
-        if (contact){
-            const isLandlord = landlordContacts.some(c => c.id === contactId);
-            if (isLandlord) selectedTab = "landlords";
-            openChat(contact);
-        }
-    }
     const channel = data.supabase.channel("new-messages").on("postgres_changes",{event: "INSERT", schema: "public", table: "message"}, 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
@@ -205,7 +193,7 @@
                     {#if selectedContact && selectedConversationId}
                         {#key selectedContact.id}
                             <!-- Chat View -->
-                            <ChatPage contact={selectedContact} conversationId={selectedConversationId} onBack={closeChat} supabase={data.supabase} groupMembers={selectedContact?.id === "roommate-group" ? roommateGroup : []}/>
+                            <ChatPage contact = {selectedContact} conversationId = {selectedConversationId} onBack = {closeChat} supabase={data.supabase}/>
                         {/key}
                     {:else}
                         <!-- Search Box -->
