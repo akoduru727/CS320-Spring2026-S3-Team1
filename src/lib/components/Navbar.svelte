@@ -34,7 +34,7 @@
       return [
         { name: "Search", href: "/search", icon: Search },
         { name: "Profile", href: "/profile", icon: User },
-        { name: "Connect", href: "/connect", icon: Users },
+        { name: "Connect", href: "/roommate-connect", icon: Users },
         { name: "Chats", href: "/renter-chatroom", icon: MessageCircle },
         { name: "Favorites", href: "/favorites", icon: Star },
         { name: "Application Portal", href: "/application-portal", icon: FileText },
