@@ -8,7 +8,7 @@
   import {Users, House, Mail} from "@lucide/svelte";
   import {onMount} from "svelte";
   import { totalUnreadCount } from "$lib/components/unreadStore";
-  type Contact = {id: string, name: string, pinned?: boolean};
+  type Contact = {id: string, name: string, pinned?: boolean, requestId?: string};
   type Tab = "friends" | "landlords" | "requests";
   export let data:{
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,14 +135,21 @@
     await fetch("?/blockLandlord", { method: "POST", body: formData, credentials: "include" });
     landlordContacts = landlordContacts.filter(c => c.id !== contact.id);
   }
-  function acceptRequest(contact: Contact){
+  async function acceptRequest(contact: Contact){
     console.log("Accepting request from", contact.name);
     requestContacts = requestContacts.filter(c => c.id !== contact.id);
     friendContacts = [...friendContacts, contact];
+    const formData = new FormData();
+    formData.append("requestId", contact.requestId ?? "");
+    formData.append("senderId", contact.id);
+    await fetch("?/acceptRequest", { method: "POST", body: formData, credentials: "include" });
   }
-  function rejectRequest(contact: Contact){
+  async function rejectRequest(contact: Contact){
     console.log("Rejecting request from", contact.name);
     requestContacts = requestContacts.filter(c => c.id !== contact.id);
+    const formData = new FormData();
+    formData.append("requestId", contact.requestId ?? "");
+    await fetch("?/rejectRequest", { method: "POST", body: formData, credentials: "include" });
   }
   onMount(() => {
     //If redirected from listings page, it auto-opens chat with that landlord

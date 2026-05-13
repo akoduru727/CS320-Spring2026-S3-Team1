@@ -30,7 +30,19 @@ export const load: PageServerLoad = async ({locals}) =>{
     
     //Message Request 
     const { data: requestRow } = await locals.supabase
-        .from("chat_splash").select("id, user_id, message_request, status").eq("conversations_id", userId).eq("status", "pending");
+        .from("chat_splash").select("id, user_id, message_request, status").eq("conversations_id", userId).eq("status", "Pending");
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const requestSenderIds = ((requestRow ?? []) as any[]).map(req => req.user_id).filter(Boolean);
+    const { data: requestSenderRows } = await locals.supabase
+        .from("tenants").select("id, name").in("id", requestSenderIds);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const requestContactsData = ((requestRow ?? []) as any[]).map(req => ({
+        id: req.user_id,
+        name: (requestSenderRows ?? []).find((sender: any) => sender.id === req.user_id)?.name ?? "Unknown",
+        requestId: req.id
+    }));
 
     //Roommate Group Members (if exists)
     const { data: roommateGroup } = await locals.supabase
@@ -61,7 +73,7 @@ export const load: PageServerLoad = async ({locals}) =>{
         .from("message").select("id, created_at, sender, messages_content, conversation_id, is_read, read_at").in("conversation_id", landlordConversations?.map(convo => convo.id) ?? []);
     
     return {
-        friendContacts: friendRows ?? [], landlordContacts: landlordRow ?? [], requestContacts: requestRow ?? [],
+        friendContacts: friendRows ?? [], landlordContacts: landlordRow ?? [], requestContacts:  requestContactsData ?? [],
         conversations: [...(friendConversations ?? []), ...(landlordConversations ?? [])], 
         messages: [...(friendMessages ?? []), ...(landlordMessages ?? [])], roommateGroup: roommateGroup ?? [], 
         roommateConversationId, currentUserId: userId
@@ -88,6 +100,10 @@ export const actions: Actions = {
         const isBlockedByThem = (otherTenant?.blocked_friends ?? []).includes(locals.user.id) || (otherLandlord?.blocked_accounts ?? []).includes(locals.user.id);
         if (isBlockedByMe || isBlockedByThem) return fail(403, {message: "Cannot start conversation with this user"});
         
+        const { data: deniedRequest } = await locals.supabase
+            .from("chat_splash").select("id").eq("user_id", contactId).eq("conversations_id", locals.user.id).eq("status", "Denied").single();
+        if (deniedRequest) return fail(403, {message: "Your previous message request was denied by this user. You cannot start a conversation."});
+
         const {data: existingConversations} = await locals.supabase
             .from("conversation").select("id").contains("chat_participants", [locals.user.id, contactId]).single()
         if (existingConversations) return {conversationId: existingConversations.id}
@@ -212,6 +228,44 @@ export const actions: Actions = {
         const { error } = await locals.supabase
             .from("landlords").update({ contacts: otherUpdatedContacts, blocked_accounts: otherUpdatedBlockedTenants }).eq("id", contactId);
         if (error) return fail(500, { message: error.message });
+        return { success: true };
+    },
+    acceptRequest: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, { message: "Unauthorized" });
+        const formData = await request.formData();
+        const requestId = formData.get("requestId") as string;
+        const senderId = formData.get("senderId") as string;
+
+        //Updating chat_splash status to Approved
+        const { error } = await locals.supabase
+            .from("chat_splash").update({ status: "Approved" }).eq("id", requestId);
+        if (error) return fail(500, { message: error.message });
+
+        //Adding sender to current user's friends
+        const { data: tenantRow } = await locals.supabase
+            .from("tenants").select("friends").eq("id", locals.user.id).single();
+        const updatedFriends = [...new Set(tenantRow?.friends ?? []), senderId];
+        await locals.supabase
+            .from("tenants").update({ friends: updatedFriends }).eq("id", locals.user.id);
+
+        //Adding current user to sender's friends
+        const { data: senderRow } = await locals.supabase
+            .from("tenants").select("friends").eq("id", senderId).single();
+        const updatedSenderFriends = [...new Set(senderRow?.friends ?? []), locals.user.id];
+        const { error: updateError } = await locals.supabase
+            .from("tenants").update({ friends: updatedSenderFriends }).eq("id", senderId);
+        if (updateError) return fail(500, { message: updateError.message });
+        return { success: true };
+    },
+    rejectRequest: async ({ request, locals }) => {
+        if (!locals.user) return fail(401, { message: "Unauthorized" });
+        const formData = await request.formData();
+        const requestId = formData.get("requestId") as string;
+
+        //Update the chat_splash table to mark the request as denied
+        const { error: DeniedError } = await locals.supabase
+            .from("chat_splash").update({ status: "Denied" }).eq("id", requestId);
+        if (DeniedError) return fail(500, { message: DeniedError.message });
         return { success: true };
     }
 }
