@@ -16,15 +16,6 @@ export const actions: Actions = {
       return fail(403, { message: "Only landlords can create listings." });
     }
 
-    const formData = await request.formData();
-    const parsed = parseListingForm(formData, { requirePdfUpload: true });
-    if (!parsed.data) {
-      return fail(400, { message: parsed.message ?? "Invalid form submission." });
-    }
-    if (!Number.isInteger(priceResult.value) || priceResult.value <= 0) {
-      return fail(400, { message: "Price has to be a positive whole number." });
-    }
-
     const geocoded = await geocodeDistanceFromCampus(
       parsed.data.address,
       parsed.data.city,
